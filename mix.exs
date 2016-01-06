@@ -19,6 +19,7 @@ defmodule BbCli.Mixfile do
     [
       {:httpoison, "~> 0.8.0"},
       {:poison, "~> 1.5"},
+      {:ini, "~> 0.0.1"},
     ]
   end
 end

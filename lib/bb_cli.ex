@@ -1,17 +1,22 @@
 defmodule BbCli do
   def main(args) do
-    args |> parse_args |> process
-
+    args |> process
   end
 
-  def process(options) do
-    IO.puts "Hello #{options[:name]}"
-  end
+  def process(args) do
+    subcommand = Enum.at(args, 0)
+    other_args = Enum.drop(args, 1)
 
-  defp parse_args(args) do
-    {options, _, _} = OptionParser.parse(args,
-      switches: [name: :string],
+    {options, _, _} = OptionParser.parse(other_args,
+      switches: [username: :string],
     )
-    options
+
+    case subcommand do
+      "repos" ->
+        owner = options[:username]
+        IO.puts BitBucket.repositories(owner) |> Enum.join("\r\n")
+      _ ->
+        IO.puts "Invalid argument"
+    end
   end
 end

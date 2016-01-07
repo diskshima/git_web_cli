@@ -17,9 +17,9 @@ defmodule BbCli.Mixfile do
 
   defp deps do
     [
-      {:httpoison, "~> 0.8.0"},
       {:poison, "~> 1.5"},
       {:ini, "~> 0.0.1"},
+      {:oauth2, "~> 0.5"},
     ]
   end
 end

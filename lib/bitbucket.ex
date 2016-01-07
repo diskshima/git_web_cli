@@ -3,17 +3,32 @@ defmodule BitBucket do
   @client_secret "YrSSB5LzQrzp5jQatQ9FRMTNwPcBhEVC"
 
   def repositories(owner) do
-    token = oauth2_token
-    resource = OAuth2.AccessToken.get!(token, "/repositories/" <> owner)
+    get_resource("/repositories/" <> owner)
+      |> Enum.map(fn(repo) -> repo["full_name"] end)
+  end
 
-    body = resource.body
+  def pullrequests(repo) do
+    get_resource("/repositories/" <> repo <> "/pullrequests")
+      |> Enum.map(fn(pr) ->
+           %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
+         end)
+  end
 
-    body["values"]
-    |> Enum.map(fn(repo) -> repo["full_name"] end)
+  def issues(repo) do
+    get_resource("/repositories/" <> repo <> "/issues")
+      |> Enum.map(fn(issue) ->
+           %{id: issue["id"], title: issue["title"], url: issue["links"]["url"]}
+         end)
   end
 
   def repo_names do
     extract_remote_urls |> extract_repo_names
+  end
+
+  defp get_resource(path) do
+    token = oauth2_token
+    resource = OAuth2.AccessToken.get!(token, path)
+    resource.body["values"]
   end
 
   defp extract_repo_names(urls) do

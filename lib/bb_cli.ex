@@ -8,14 +8,14 @@ defmodule BbCli do
     other_args = Enum.drop(args, 1)
 
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [username: :string, repo: :string]
+      switches: [username: :string, repo: :string, title: :string]
     )
 
     case subcommand do
       "repos" ->
         owner = options[:username]
         BitBucket.repositories(owner) |> print_results
-      "pullrequests" ->
+      "pulls" ->
         repo = get_repo_or_default(options)
         BitBucket.pullrequests(repo)
           |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
@@ -27,6 +27,10 @@ defmodule BbCli do
           |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
           |> Enum.map(fn(issue) -> "#{issue[:id]}: #{issue[:title]}" end)
           |> print_results
+      "issue" ->
+        repo = get_repo_or_default(options)
+        issue = BitBucket.create_issue(repo, options[:title])
+        IO.puts "Created issue ##{issue.id}: #{issue.title}"
       "reponame" ->
         BitBucket.repo_names |> print_results
       _ ->

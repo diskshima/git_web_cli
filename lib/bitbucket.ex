@@ -3,32 +3,54 @@ defmodule BitBucket do
   @client_secret "YrSSB5LzQrzp5jQatQ9FRMTNwPcBhEVC"
 
   def repositories(owner) do
-    get_resource("/repositories/" <> owner)
+    get_resource!("/repositories/" <> owner)
       |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
   def pullrequests(repo) do
-    get_resource("/repositories/" <> repo <> "/pullrequests")
+    get_resource!("/repositories/" <> repo <> "/pullrequests")
       |> Enum.map(fn(pr) ->
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
          end)
   end
 
   def issues(repo) do
-    get_resource("/repositories/" <> repo <> "/issues")
+    get_resource!("/repositories/" <> repo <> "/issues")
       |> Enum.map(fn(issue) ->
            %{id: issue["id"], title: issue["title"], url: issue["links"]["url"]}
          end)
+  end
+
+  def create_pullrequest(repo, title, source, dest \\ nil) do
+    params = %{title: title, source: %{branch: %{name: source}}}
+
+    if dest do
+      params = params |> Dict.merge(destination: %{branch: %{name: dest}})
+    end
+
+    post_resource!("/repositories/" <> repo <> "/pullrequests", params)
+  end
+
+  def create_issue(repo, title) do
+    params = %{title: title}
+    resp = post_resource!("/repositories/" <> repo <> "/issues", params)
+    body = resp.body
+    %{id: body["id"], title: body["title"]}
   end
 
   def repo_names do
     extract_remote_urls |> extract_repo_names
   end
 
-  defp get_resource(path) do
+  defp get_resource!(path) do
     token = oauth2_token
     resource = OAuth2.AccessToken.get!(token, path)
     resource.body["values"]
+  end
+
+  defp post_resource!(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.post!(token, path, body)
   end
 
   defp extract_repo_names(urls) do
@@ -61,6 +83,8 @@ defmodule BitBucket do
       redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
       site: "https://api.bitbucket.org/2.0",
       token_url: "https://bitbucket.org/site/oauth2/access_token",
+      headers: [{"Accept", "application/json"},
+        {"Content-Type", "application/json"}]
     ])
   end
 
@@ -75,7 +99,6 @@ defmodule BitBucket do
         params = Keyword.new([{:username, username}, {:password, password}])
 
         client
-          |> OAuth2.Client.put_header("Content-Type", "application/json")
           |> OAuth2.Client.get_token!(params)
           |> save_tokens
     end

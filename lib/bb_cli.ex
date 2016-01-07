@@ -16,13 +16,13 @@ defmodule BbCli do
         owner = options[:username]
         BitBucket.repositories(owner) |> print_results
       "pullrequests" ->
-        repo = options[:repo]
+        repo = get_repo_or_default(options)
         BitBucket.pullrequests(repo)
           |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
           |> Enum.map(fn(pr) -> "#{pr[:id]}: #{pr[:title]}" end)
           |> print_results
       "issues" ->
-        repo = options[:repo]
+        repo = get_repo_or_default(options)
         BitBucket.issues(repo)
           |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
           |> Enum.map(fn(issue) -> "#{issue[:id]}: #{issue[:title]}" end)
@@ -32,6 +32,10 @@ defmodule BbCli do
       _ ->
         IO.puts "Invalid argument"
     end
+  end
+
+  defp get_repo_or_default(options) do
+    options[:repo] || BitBucket.repo_names |> Enum.at(0)
   end
 
   defp print_results(list) do

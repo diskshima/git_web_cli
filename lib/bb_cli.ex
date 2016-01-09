@@ -70,11 +70,11 @@ defmodule BbCli do
 
   defp process_pull_requests(other_args) do
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [repo: :string]
+      switches: [repo: :string, state: :string]
     )
 
     repo = get_repo_or_default(options)
-    pulls = BitBucket.pull_requests(repo)
+    pulls = BitBucket.pull_requests(repo, options[:state])
 
     pulls
     |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)

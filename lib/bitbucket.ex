@@ -13,8 +13,17 @@ defmodule BitBucket do
     resource |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
-  def pull_requests(repo) do
-    resource = get_resource!("/repositories/" <> repo <> "/pullrequests")
+  def pull_requests(repo, state \\ nil) do
+    base_path = "/repositories/" <> repo <> "/pullrequests"
+
+    path = if state do
+        base_path <> "?" <> URI.encode_query(%{state: String.upcase(state)})
+      else
+        base_path
+      end
+
+    resource = get_resource!(path)
+
     resource
     |> Enum.map(fn(pr) ->
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}

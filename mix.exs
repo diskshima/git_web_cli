@@ -20,6 +20,7 @@ defmodule BbCli.Mixfile do
       {:poison, "~> 1.5"},
       {:ini, "~> 0.0.1"},
       {:oauth2, "~> 0.5"},
+      {:dogma, "~> 0.0", only: :dev},
     ]
   end
 end

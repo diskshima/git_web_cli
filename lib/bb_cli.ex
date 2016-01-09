@@ -61,7 +61,7 @@ defmodule BbCli do
           errors["fields"]
           |> Enum.map(fn({field, messages}) -> messages |> Enum.join(", ") end)
           |> Enum.join("\n")
-        _ -> "Created pull request ##{pr_body.id}: #{pr_body.title}"
+        _ -> "Created pull request ##{pr_body["id"]}: #{pr_body["title"]}"
       end
 
     IO.puts(msg)

@@ -52,15 +52,19 @@ defmodule BitBucket do
 
     resp = post_resource!("/repositories/" <> repo <> "/pullrequests", params)
 
-    body = resp.body
-    body
+    resp.body
   end
 
-  def create_issue(repo, title) do
-    params = %{title: title}
+  def create_issue(repo, title, kind \\ nil, content \\ "") do
+    params = %{title: title, content: %{raw: content}}
+
+    if kind do
+      params = params |> Dict.merge(kind: kind)
+    end
+
     resp = post_resource!("/repositories/" <> repo <> "/issues", params)
-    body = resp.body
-    %{id: body["id"], title: body["title"]}
+
+    resp.body
   end
 
   def repo_names do
@@ -90,11 +94,6 @@ defmodule BitBucket do
     token = oauth2_token
     resource = OAuth2.AccessToken.get!(token, path)
     resource.body["values"]
-  end
-
-  defp post_resource(path, body) do
-    token = oauth2_token
-    OAuth2.AccessToken.post(token, path, body)
   end
 
   defp post_resource!(path, body) do

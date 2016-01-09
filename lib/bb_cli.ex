@@ -31,11 +31,23 @@ defmodule BbCli do
     IO.puts Enum.join(list, "\r\n")
   end
 
+  defp print_issue_result(issue_body) do
+    msg = case issue_body do
+          %{"error" => errors} ->
+            errors["fields"]
+            |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
+            |> Enum.join("\n")
+        _ -> "Created issue ##{issue_body["id"]}: #{issue_body["title"]}"
+      end
+
+    IO.puts(msg)
+  end
+
   defp print_pullrequest_result(pr_body) do
     msg = case pr_body do
         %{"error" => errors} ->
           errors["fields"]
-          |> Enum.map(fn({field, messages}) -> messages |> Enum.join(", ") end)
+          |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
           |> Enum.join("\n")
         _ -> "Created pull request ##{pr_body["id"]}: #{pr_body["title"]}"
       end
@@ -95,7 +107,7 @@ defmodule BbCli do
   end
 
   defp process_issues(other_args) do
-    {options, args_left, _} = OptionParser.parse(other_args,
+    {options, _, _} = OptionParser.parse(other_args,
       switches: [repo: :string, state: :string])
 
     repo = get_repo_or_default(options)
@@ -108,9 +120,10 @@ defmodule BbCli do
   end
 
    defp process_issue(other_args) do
-    {options, _, _} = OptionParser.parse(other_args, switches: [title: :string])
+    {options, _, _} = OptionParser.parse(other_args,
+      switches: [title: :string, kind: :string])
     repo = get_repo_or_default(options)
-    issue = BitBucket.create_issue(repo, options[:title])
-    IO.puts "Created issue ##{issue.id}: #{issue.title}"
+    issue_body = BitBucket.create_issue(repo, options[:title], options[:kind])
+    print_issue_result(issue_body)
   end
 end

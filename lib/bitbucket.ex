@@ -7,7 +7,7 @@ defmodule BitBucket do
       |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
-  def pullrequests(repo) do
+  def pull_requests(repo) do
     get_resource!("/repositories/" <> repo <> "/pullrequests")
       |> Enum.map(fn(pr) ->
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
@@ -21,14 +21,17 @@ defmodule BitBucket do
          end)
   end
 
-  def create_pullrequest(repo, title, source, dest \\ nil) do
+  def create_pull_request(repo, title, source, dest \\ nil) do
     params = %{title: title, source: %{branch: %{name: source}}}
 
     if dest do
       params = params |> Dict.merge(destination: %{branch: %{name: dest}})
     end
 
-    post_resource!("/repositories/" <> repo <> "/pullrequests", params)
+    resp = post_resource!("/repositories/" <> repo <> "/pullrequests", params)
+
+    body = resp.body
+    body
   end
 
   def create_issue(repo, title) do
@@ -42,10 +45,22 @@ defmodule BitBucket do
     extract_remote_urls |> extract_repo_names
   end
 
+  def current_branch do
+    {:ok, head_file} = File.read(Path.join(git_dir, "HEAD"))
+    head_file
+    |> String.replace(~r/^ref: refs\/heads\//, "", global: false)
+    |> String.rstrip
+  end
+
   defp get_resource!(path) do
     token = oauth2_token
     resource = OAuth2.AccessToken.get!(token, path)
     resource.body["values"]
+  end
+
+  defp post_resource(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.post(token, path, body)
   end
 
   defp post_resource!(path, body) do
@@ -70,8 +85,13 @@ defmodule BitBucket do
       String.contains?(value[:url], "bitbucket.org")
   end
 
+  defp git_dir do
+    # TODO Recursively search parent directories for any .git directory
+    ".git"
+  end
+
   defp read_git_config do
-    {:ok, gitconfig_file} = File.read(".git/config")
+    {:ok, gitconfig_file} = File.read(Path.join(git_dir, "config"))
     Ini.decode(gitconfig_file)
   end
 

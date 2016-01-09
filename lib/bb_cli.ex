@@ -39,6 +39,8 @@ defmodule BbCli do
         repo = get_repo_or_default(options)
         issue = BitBucket.create_issue(repo, options[:title])
         IO.puts "Created issue ##{issue.id}: #{issue.title}"
+      "open" ->
+        open_in_browser(other_args)
       "reponame" ->
         BitBucket.repo_names |> print_results
       _ ->
@@ -64,5 +66,21 @@ defmodule BbCli do
       end
 
     IO.puts(msg)
+  end
+
+  defp open_in_browser(other_args) do
+    {options, args_left, _} = OptionParser.parse(other_args, switches: [repo: :string])
+
+    {category, args_left2} = args_left |> ListExt.pop
+    {id, _} = args_left2 |> ListExt.pop
+
+    repo = get_repo_or_default(options)
+
+    url = case category do
+        "pull-request" -> BitBucket.pull_request_url(repo, id)
+        "issue" -> BitBucket.issue_url(repo, id)
+      end
+
+    Launchy.open_url(url)
   end
 end

@@ -1,6 +1,7 @@
 defmodule BitBucket do
   @client_id "3CP8yrCLzv9UWkpdQ6"
   @client_secret "YrSSB5LzQrzp5jQatQ9FRMTNwPcBhEVC"
+  @web_base_url "https://bitbucket.org"
 
   def repositories(owner) do
     get_resource!("/repositories/" <> owner)
@@ -50,6 +51,18 @@ defmodule BitBucket do
     head_file
     |> String.replace(~r/^ref: refs\/heads\//, "", global: false)
     |> String.rstrip
+  end
+
+  def issue_url(repo, id) do
+    category_url(repo, "issues", id)
+  end
+
+  def pull_request_url(repo, id) do
+    category_url(repo, "pull-requests", id)
+  end
+
+  defp category_url(repo, category, id) do
+    "#{@web_base_url}/#{repo}/#{category}/#{id}"
   end
 
   defp get_resource!(path) do

@@ -1,25 +1,46 @@
 defmodule BitBucket do
+  @moduledoc """
+  BitBucket is the component which does the talking with the BitBucket API and
+  any git parsing necessary.
+  """
+
   @client_id "3CP8yrCLzv9UWkpdQ6"
   @client_secret "YrSSB5LzQrzp5jQatQ9FRMTNwPcBhEVC"
   @web_base_url "https://bitbucket.org"
 
   def repositories(owner) do
-    get_resource!("/repositories/" <> owner)
-      |> Enum.map(fn(repo) -> repo["full_name"] end)
+    resource = get_resource!("/repositories/" <> owner)
+    resource |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
-  def pull_requests(repo) do
-    get_resource!("/repositories/" <> repo <> "/pullrequests")
-      |> Enum.map(fn(pr) ->
+  def pull_requests(repo, state \\ nil) do
+    base_path = "/repositories/" <> repo <> "/pullrequests"
+
+    path = if state do
+        base_path <> "?" <> URI.encode_query(%{state: String.upcase(state)})
+      else
+        base_path
+      end
+
+    resource = get_resource!(path)
+
+    resource
+    |> Enum.map(fn(pr) ->
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
          end)
   end
 
-  def issues(repo) do
-    get_resource!("/repositories/" <> repo <> "/issues")
-      |> Enum.map(fn(issue) ->
-           %{id: issue["id"], title: issue["title"], url: issue["links"]["url"]}
-         end)
+  def issues(repo, state \\ nil) do
+    all_issues = get_resource!("/repositories/" <> repo <> "/issues")
+
+    filtered_issues = if state == nil do
+        all_issues
+      else
+        all_issues |> Enum.filter(fn(issue) -> issue["state"] == state end)
+      end
+
+    filtered_issues
+    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
   end
 
   def create_pull_request(repo, title, source, dest \\ nil) do
@@ -83,14 +104,15 @@ defmodule BitBucket do
 
   defp extract_repo_names(urls) do
     urls
-      |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
-      |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1, "\\g{1}"))
+    |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
+    |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1,
+         "\\g{1}"))
   end
 
   defp extract_remote_urls do
     read_git_config
-      |> Enum.filter(fn({k, v}) -> bitbucket_remote?(k, v) end)
-      |> Enum.map(fn({_, v}) -> v[:url] end)
+    |> Enum.filter(fn({k, v}) -> bitbucket_remote?(k, v) end)
+    |> Enum.map(fn({_, v}) -> v[:url] end)
   end
 
   defp bitbucket_remote?(section, value) do
@@ -127,13 +149,16 @@ defmodule BitBucket do
       _ ->
         client = oauth2_client
 
-        username = IO.gets("Please specify BitBucket username > ") |> String.strip
-        password = get_hidden_input("Please enter BitBucket password (keys entered will be hidden) > ")
+        input = IO.gets("Please specify BitBucket username > ")
+
+        username = input  > String.strip
+        password = get_hidden_input("Please enter BitBucket password " <>
+          "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
 
         client
-          |> OAuth2.Client.get_token!(params)
-          |> save_tokens
+        |> OAuth2.Client.get_token!(params)
+        |> save_tokens
     end
   end
 

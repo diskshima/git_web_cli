@@ -1,4 +1,9 @@
 defmodule BbCli do
+  @moduledoc """
+  Main module for the command line interface (CLI).
+  It will parse the arguments and call into `BitBucket`.
+  """
+
   def main(args) do
     args |> process
   end
@@ -6,45 +11,15 @@ defmodule BbCli do
   def process(args) do
     {subcommand, other_args} = args |> ListExt.pop
 
-    {options, _, _} = OptionParser.parse(other_args,
-      switches: [username: :string, repo: :string, title: :string,
-                 source: :string, target: :string]
-    )
-
     case subcommand do
-      "repos" ->
-        owner = options[:username]
-        BitBucket.repositories(owner) |> print_results
-      "pull-requests" ->
-        repo = get_repo_or_default(options)
-        BitBucket.pull_requests(repo)
-          |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
-          |> Enum.map(fn(pr) -> "#{pr[:id]}: #{pr[:title]}" end)
-          |> print_results
-      "pull-request" ->
-        # Create a pull request
-        repo = get_repo_or_default(options)
-        source = options[:source] || BitBucket.current_branch
-        repo
-        |> BitBucket.create_pull_request(options[:title], source,
-             options[:target])
-        |> print_pullrequest_result
-      "issues" ->
-        repo = get_repo_or_default(options)
-        BitBucket.issues(repo)
-          |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
-          |> Enum.map(fn(issue) -> "#{issue[:id]}: #{issue[:title]}" end)
-          |> print_results
-      "issue" ->
-        repo = get_repo_or_default(options)
-        issue = BitBucket.create_issue(repo, options[:title])
-        IO.puts "Created issue ##{issue.id}: #{issue.title}"
-      "open" ->
-        open_in_browser(other_args)
-      "reponame" ->
-        BitBucket.repo_names |> print_results
-      _ ->
-        IO.puts "Invalid argument"
+      "repos" -> process_repos(other_args)
+      "pull-requests" -> process_pull_requests(other_args)
+      "pull-request" -> process_pull_request(other_args)
+      "issues" -> process_issues(other_args)
+      "issue" -> process_issue(other_args)
+      "open" -> open_in_browser(other_args)
+      "reponame" -> BitBucket.repo_names |> print_results
+      _ -> IO.puts "Invalid argument"
     end
   end
 
@@ -68,8 +43,17 @@ defmodule BbCli do
     IO.puts(msg)
   end
 
+  defp process_repos(other_args) do
+    {options, _, _} = OptionParser.parse(other_args, switches: [username: :string])
+
+    owner = options[:username]
+    repos = BitBucket.repositories(owner)
+    repos |> print_results
+  end
+
   defp open_in_browser(other_args) do
-    {options, args_left, _} = OptionParser.parse(other_args, switches: [repo: :string])
+    {options, args_left, _} = OptionParser.parse(other_args,
+      switches: [repo: :string])
 
     {category, args_left2} = args_left |> ListExt.pop
     {id, _} = args_left2 |> ListExt.pop
@@ -82,5 +66,51 @@ defmodule BbCli do
       end
 
     Launchy.open_url(url)
+  end
+
+  defp process_pull_requests(other_args) do
+    {options, _, _} = OptionParser.parse(other_args,
+      switches: [repo: :string, state: :string]
+    )
+
+    repo = get_repo_or_default(options)
+    pulls = BitBucket.pull_requests(repo, options[:state])
+
+    pulls
+    |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
+    |> Enum.map(fn(pr) -> "#{pr[:id]}: #{pr[:title]}" end)
+    |> print_results
+  end
+
+  defp process_pull_request(other_args) do
+    {options, _, _} = OptionParser.parse(other_args,
+      switches: [repo: :string, title: :string, source: :string, target: :string]
+    )
+
+    repo = get_repo_or_default(options)
+    source = options[:source] || BitBucket.current_branch
+    repo |> BitBucket.create_pull_request(options[:title], source,
+         options[:target])
+    |> print_pullrequest_result
+  end
+
+  defp process_issues(other_args) do
+    {options, args_left, _} = OptionParser.parse(other_args,
+      switches: [repo: :string, state: :string])
+
+    repo = get_repo_or_default(options)
+    issues = BitBucket.issues(repo, options[:state])
+
+    issues
+    |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
+    |> Enum.map(fn(issue) -> "#{issue[:id]}: #{issue[:title]}" end)
+    |> print_results
+  end
+
+   defp process_issue(other_args) do
+    {options, _, _} = OptionParser.parse(other_args, switches: [title: :string])
+    repo = get_repo_or_default(options)
+    issue = BitBucket.create_issue(repo, options[:title])
+    IO.puts "Created issue ##{issue.id}: #{issue.title}"
   end
 end

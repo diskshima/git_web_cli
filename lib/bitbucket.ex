@@ -56,7 +56,7 @@ defmodule BitBucket do
   defp extract_repo_names(urls) do
     urls
       |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
-    # TODO Add HTTPS endpoint support
+      |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1, "\\g{1}"))
   end
 
   defp extract_remote_urls do

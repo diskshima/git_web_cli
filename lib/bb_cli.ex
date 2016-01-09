@@ -8,19 +8,28 @@ defmodule BbCli do
     other_args = Enum.drop(args, 1)
 
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [username: :string, repo: :string, title: :string]
+      switches: [username: :string, repo: :string, title: :string,
+                 source: :string, target: :string]
     )
 
     case subcommand do
       "repos" ->
         owner = options[:username]
         BitBucket.repositories(owner) |> print_results
-      "pulls" ->
+      "pull-requests" ->
         repo = get_repo_or_default(options)
-        BitBucket.pullrequests(repo)
+        BitBucket.pull_requests(repo)
           |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)
           |> Enum.map(fn(pr) -> "#{pr[:id]}: #{pr[:title]}" end)
           |> print_results
+      "pull-request" ->
+        # Create a pull request
+        repo = get_repo_or_default(options)
+        source = options[:source] || BitBucket.current_branch
+        repo
+        |> BitBucket.create_pull_request(options[:title], source,
+             options[:target])
+        |> print_pullrequest_result
       "issues" ->
         repo = get_repo_or_default(options)
         BitBucket.issues(repo)
@@ -46,4 +55,15 @@ defmodule BbCli do
     IO.puts Enum.join(list, "\r\n")
   end
 
+  defp print_pullrequest_result(pr_body) do
+    msg = case pr_body do
+        %{"error" => errors} ->
+          errors["fields"]
+          |> Enum.map(fn({field, messages}) -> messages |> Enum.join(", ") end)
+          |> Enum.join("\n")
+        _ -> "Created pull request ##{pr_body.id}: #{pr_body.title}"
+      end
+
+    IO.puts(msg)
+  end
 end

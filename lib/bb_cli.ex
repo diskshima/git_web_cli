@@ -4,8 +4,7 @@ defmodule BbCli do
   end
 
   def process(args) do
-    subcommand = Enum.at(args, 0)
-    other_args = Enum.drop(args, 1)
+    {subcommand, other_args} = args |> ListExt.pop
 
     {options, _, _} = OptionParser.parse(other_args,
       switches: [username: :string, repo: :string, title: :string,

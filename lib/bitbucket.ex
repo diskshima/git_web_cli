@@ -21,13 +21,17 @@ defmodule BitBucket do
          end)
   end
 
-  def issues(repo) do
-    issues = get_resource!("/repositories/" <> repo <> "/issues")
+  def issues(repo, state \\ nil) do
+    all_issues = get_resource!("/repositories/" <> repo <> "/issues")
 
-    issues
-    |> Enum.map(fn(issue) ->
-           %{id: issue["id"], title: issue["title"], url: issue["links"]["url"]}
-         end)
+    filtered_issues = if state == nil do
+        all_issues
+      else
+        all_issues |> Enum.filter(fn(issue) -> issue["state"] == state end)
+      end
+
+    filtered_issues
+    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
   end
 
   def create_pull_request(repo, title, source, dest \\ nil) do

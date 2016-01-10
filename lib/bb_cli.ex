@@ -121,9 +121,11 @@ defmodule BbCli do
 
    defp process_issue(other_args) do
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [title: :string, kind: :string])
+      switches: [title: :string, kind: :string, content: :string,
+        priority: :string])
     repo = get_repo_or_default(options)
-    issue_body = BitBucket.create_issue(repo, options[:title], options[:kind])
+    issue_body = BitBucket.create_issue(repo, options[:title], options[:kind],
+      options[:content], options[:priority])
     print_issue_result(issue_body)
   end
 end

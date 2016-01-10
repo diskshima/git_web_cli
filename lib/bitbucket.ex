@@ -55,12 +55,11 @@ defmodule BitBucket do
     resp.body
   end
 
-  def create_issue(repo, title, kind \\ nil, content \\ "") do
+  def create_issue(repo, title, kind \\ nil, content \\ "", priority \\ nil) do
     params = %{title: title, content: %{raw: content}}
 
-    if kind do
-      params = params |> Dict.merge(kind: kind)
-    end
+    if kind, do: params = params |> Dict.merge(%{kind: kind})
+    if priority, do: params = params |> Dict.merge(%{priority: priority})
 
     resp = post_resource!("/repositories/" <> repo <> "/issues", params)
 

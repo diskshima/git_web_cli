@@ -101,6 +101,11 @@ defmodule BitBucket do
     OAuth2.AccessToken.post!(token, path, body)
   end
 
+  defp put_resource!(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.put!(token, path, body)
+  end
+
   defp extract_repo_names(urls) do
     urls
     |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))

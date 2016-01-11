@@ -100,7 +100,7 @@ defmodule BbCli do
     )
 
     repo = get_repo_or_default(options)
-    source = options[:source] || BitBucket.current_branch
+    source = options[:source] || Git.current_branch
     repo |> BitBucket.create_pull_request(options[:title], source,
          options[:target])
     |> print_pullrequest_result

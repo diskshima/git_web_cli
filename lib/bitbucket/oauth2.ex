@@ -18,7 +18,7 @@ defmodule BitBucket.OAuth2 do
 
         input = IO.gets("Please specify BitBucket username > ")
 
-        username = input  > String.strip
+        username = input |> String.strip
         password = get_hidden_input("Please enter BitBucket password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
@@ -54,7 +54,7 @@ defmodule BitBucket.OAuth2 do
     tokens = %{access_token: token.access_token,
       refresh_token: token.refresh_token, expires_at: token.expires_at}
 
-    json = Poison.encode!(tokens)
+    json = Poison.encode!(tokens, [pretty: true])
 
     File.write(bb_cli_file, json, [:write])
     token

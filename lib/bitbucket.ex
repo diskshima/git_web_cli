@@ -74,8 +74,8 @@ defmodule BitBucket do
 
   def repo_names do
     remote_urls
-      |> extract_repo_names
-      |> Enum.filter(fn({k, v}) -> bitbucket_remote?(k, v) end)
+    |> Enum.filter(&bitbucket_url?(&1))
+    |> extract_repo_names
   end
 
   def issue_url(repo, id) do
@@ -113,8 +113,7 @@ defmodule BitBucket do
          "\\g{1}"))
   end
 
-  defp bitbucket_remote?(section, value) do
-    String.starts_with?(Atom.to_string(section), "remote") &&
-      String.contains?(value[:url], "bitbucket.org")
+  defp bitbucket_url?(url) do
+    String.contains?(url, "bitbucket.org")
   end
 end

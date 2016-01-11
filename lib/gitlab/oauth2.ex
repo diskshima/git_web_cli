@@ -1,6 +1,6 @@
-defmodule BitBucket.OAuth2 do
+defmodule GitLab.OAuth2 do
   @moduledoc """
-  Holds OAuth2 related functions for BitBucket.
+  Holds OAuth2 related functions for GitLab.
   """
 
   @client_id "YOUR_CLIENT_ID"
@@ -12,10 +12,10 @@ defmodule BitBucket.OAuth2 do
       _ ->
         client = oauth2_client
 
-        input = IO.gets("Please specify BitBucket username > ")
+        input = IO.gets("Please specify GitLab username > ")
 
         username = input |> String.strip
-        password = get_hidden_input("Please enter BitBucket password " <>
+        password = get_hidden_input("Please enter GitLab password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
 
@@ -25,14 +25,21 @@ defmodule BitBucket.OAuth2 do
     end
   end
 
+  defp host_name do
+    case Config.read do
+      {:ok, config} -> config["gitlab"]["host"]
+      {:error, error} -> raise error
+    end
+  end
+
   defp oauth2_client do
     OAuth2.Client.new([
       strategy: OAuth2.Strategy.Password,
       client_id: @client_id,
       client_secret: @client_secret,
       redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
-      site: "https://api.bitbucket.org/2.0",
-      token_url: "https://bitbucket.org/site/oauth2/access_token",
+      site: host_name,
+      token_url: host_name <> "/oauth/token",
       headers: [{"Accept", "application/json"},
         {"Content-Type", "application/json"}]
     ])
@@ -47,10 +54,10 @@ defmodule BitBucket.OAuth2 do
   end
 
   defp save_tokens(token) do
-    bb_info = %{bitbucket: %{access_token: token.access_token,
+    gl_info = %{gitlab: %{host: host_name, access_token: token.access_token,
       refresh_token: token.refresh_token, expires_at: token.expires_at}}
 
-    Config.save(bb_info)
+    Config.save(gl_info)
 
     token
   end
@@ -58,12 +65,18 @@ defmodule BitBucket.OAuth2 do
   defp existing_token do
     case Config.read do
       {:ok, info} ->
-        bb_config = info["bitbucket"]
-        if bb_config["expires_at"] < OAuth2.Util.unix_now do
-          {:ok, OAuth2.AccessToken.refresh!(
-            %{refresh_token: bb_config["refresh_token"], client: oauth2_client})}
-        else
-          {:ok, OAuth2.AccessToken.new(bb_config["access_token"], oauth2_client)}
+        gl_config = info["gitlab"]
+        expires = gl_config["expires_at"]
+        refresh_token = gl_config["refresh_token"]
+        access_token = gl_config["access_token"]
+
+        cond do
+          is_nil(access_token) -> {:no_token, nil}
+          expires < OAuth2.Util.unix_now ->
+            {:ok, OAuth2.AccessToken.refresh!(
+              %{refresh_token: refresh_token, client: oauth2_client})}
+          true ->
+            {:ok, OAuth2.AccessToken.new(access_token, oauth2_client)}
         end
       {:error, _} -> {:error, nil}
     end

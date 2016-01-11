@@ -7,6 +7,8 @@ defmodule BitBucket.OAuth2 do
        grow into a more generic config persistence component.
   """
 
+  import Config
+
   @client_id "YOUR_CLIENT_ID"
   @client_secret "YOUR_CLIENT_SECRET"
 
@@ -18,7 +20,7 @@ defmodule BitBucket.OAuth2 do
 
         input = IO.gets("Please specify BitBucket username > ")
 
-        username = input  > String.strip
+        username = input |> String.strip
         password = get_hidden_input("Please enter BitBucket password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
@@ -51,38 +53,25 @@ defmodule BitBucket.OAuth2 do
   end
 
   defp save_tokens(token) do
-    tokens = %{access_token: token.access_token,
-      refresh_token: token.refresh_token, expires_at: token.expires_at}
+    bb_info = %{bitbucket: %{access_token: token.access_token,
+      refresh_token: token.refresh_token, expires_at: token.expires_at}}
 
-    json = Poison.encode!(tokens)
+    Config.save(bb_info)
 
-    File.write(bb_cli_file, json, [:write])
     token
   end
 
-  defp bb_cli_file do
-    Path.expand("~/.bb_cli")
-  end
-
   defp existing_token do
-    case read_tokens do
+    case Config.read do
       {:ok, info} ->
-        if info["expires_at"] < OAuth2.Util.unix_now do
+        bb_config = info["bitbucket"]
+        if bb_config["expires_at"] < OAuth2.Util.unix_now do
           {:ok, OAuth2.AccessToken.refresh!(
-            %{refresh_token: info["refresh_token"], client: oauth2_client})}
+            %{refresh_token: bb_config["refresh_token"], client: oauth2_client})}
         else
-          {:ok, OAuth2.AccessToken.new(info["access_token"], oauth2_client)}
+          {:ok, OAuth2.AccessToken.new(bb_config["access_token"], oauth2_client)}
         end
       {:error, _} -> {:error, nil}
-    end
-  end
-
-  defp read_tokens do
-    case File.read(bb_cli_file) do
-      {:ok, content} ->
-        token_info = content |> Poison.decode!
-        {:ok, token_info}
-      {:error, reason} -> {:error, reason}
     end
   end
 end

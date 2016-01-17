@@ -1,8 +1,13 @@
 defprotocol Remote do
+  def issues(repo)
   def issues(repo, state)
 end
 
 defimpl Remote, for: BitBucket do
+  def issues(remote) do
+    issues(remote, nil)
+  end
+
   def issues(remote, state \\ nil) do
     all_issues = BitBucket.get_resource!("/repositories/" <> remote.repo <> "/issues")
 
@@ -18,8 +23,14 @@ defimpl Remote, for: BitBucket do
 end
 
 defimpl Remote, for: GitLab do
+  def issues(remote) do
+    issues(remote, nil)
+  end
+
   def issues(remote, state \\ nil) do
-    project_id = GitLab.project_id
-    all_issues = GitLab.get_resource!("/projects/#{project_id}/issues")
+    project_id = remote |> GitLab.project_id
+
+    GitLab.get_resource!("/projects/#{project_id}/issues")
+    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
   end
 end

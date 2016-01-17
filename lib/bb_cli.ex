@@ -11,11 +11,13 @@ defmodule BbCli do
   def process(args) do
     {subcommand, other_args} = args |> ListExt.pop
 
+    remote = get_remote(other_args)
+
     case subcommand do
       "repos" -> process_repos(other_args)
       "pull-requests" -> process_pull_requests(other_args)
       "pull-request" -> process_pull_request(other_args)
-      "issues" -> process_issues(other_args)
+      "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(other_args)
       "open" -> open_in_browser(other_args)
       "reponame" -> BitBucket.repo_names |> print_results
@@ -24,7 +26,14 @@ defmodule BbCli do
   end
 
   defp get_repo_or_default(options) do
-    options[:repo] || BitBucket.repo_names |> Enum.at(0)
+    if options[:repo] do
+      options[:repo]
+    else
+      case determine_remote_type do
+        :bitbucket -> BitBucket.repo_names |> Enum.at(0)
+        :gitlab -> GitLab.repo_names |> Enum.at(0)
+      end
+    end
   end
 
   defp print_results(list) do
@@ -106,12 +115,10 @@ defmodule BbCli do
     |> print_pullrequest_result
   end
 
-  defp process_issues(other_args) do
+  defp process_issues(remote, other_args) do
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [repo: :string, state: :string])
+      switches: [state: :string])
 
-    repo = get_repo_or_default(options)
-    remote = %BitBucket{repo: repo}
     issues = remote |> Remote.issues(options[:state])
 
     issues
@@ -128,5 +135,25 @@ defmodule BbCli do
     issue_body = BitBucket.create_issue(repo, options[:title], options[:kind],
       options[:content], options[:priority])
     print_issue_result(issue_body)
+  end
+
+  def get_remote(options) do
+    repo = get_repo_or_default(options)
+
+    case determine_remote_type do
+      :bitbucket -> %BitBucket{repo: repo}
+      :gitlab -> %GitLab{repo: repo}
+      _ -> raise "No remote found."
+    end
+  end
+
+  defp determine_remote_type do
+    remotes = Git.remote_urls
+
+    is_bb =
+      remotes
+      |> Enum.any?(fn(url) -> String.contains?(url, "bitbucket.org") end)
+
+    if is_bb, do: :bitbucket, else: :gitlab
   end
 end

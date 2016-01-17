@@ -24,10 +24,8 @@ defmodule GitLab do
     get_resource!("/projects/search/" <> query)
   end
 
-  defp extract_repo_names(urls) do
-    urls
-    |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
-    |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1,
-         "\\g{1}"))
+  def repo_names do
+    remote_urls
+    |> Git.extract_repo_names
   end
 end

@@ -25,6 +25,11 @@ defmodule Git do
     |> String.rstrip
   end
 
+  def extract_repo_names(urls) do
+    urls
+    |> Enum.map(&Regex.replace(~r/^.*[\/:]([^\/:]+)\/([^\/]+).git/, &1, "\\g{1}/\\g{2}"))
+  end
+
   defp read_git_config do
     {:ok, gitconfig_file} = File.read(Path.join(git_dir, "config"))
     Ini.decode(gitconfig_file)

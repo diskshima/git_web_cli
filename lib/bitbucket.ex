@@ -64,7 +64,7 @@ defmodule BitBucket do
   def repo_names do
     remote_urls
     |> Enum.filter(&bitbucket_url?(&1))
-    |> extract_repo_names
+    |> Git.extract_repo_names
   end
 
   def issue_url(repo, id) do
@@ -89,13 +89,6 @@ defmodule BitBucket do
   defp put_resource!(path, body) do
     token = oauth2_token
     OAuth2.AccessToken.put!(token, path, body)
-  end
-
-  defp extract_repo_names(urls) do
-    urls
-    |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
-    |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1,
-         "\\g{1}"))
   end
 
   defp category_url(repo, category, id) do

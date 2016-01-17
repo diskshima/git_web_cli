@@ -111,7 +111,8 @@ defmodule BbCli do
       switches: [repo: :string, state: :string])
 
     repo = get_repo_or_default(options)
-    issues = BitBucket.issues(repo, options[:state])
+    remote = %BitBucket{repo: repo}
+    issues = remote |> Remote.issues(options[:state])
 
     issues
     |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)

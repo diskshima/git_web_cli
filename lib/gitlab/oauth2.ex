@@ -8,7 +8,9 @@ defmodule GitLab.OAuth2 do
 
   def oauth2_token do
     case existing_token do
-      {:ok, token} -> token
+      {:ok, token} ->
+        token
+        |> save_tokens
       _ ->
         client = oauth2_client
 
@@ -38,7 +40,7 @@ defmodule GitLab.OAuth2 do
       client_id: @client_id,
       client_secret: @client_secret,
       redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
-      site: host_name,
+      site: host_name <> "/api/v3",
       token_url: host_name <> "/oauth/token",
       headers: [{"Accept", "application/json"},
         {"Content-Type", "application/json"}]
@@ -68,15 +70,12 @@ defmodule GitLab.OAuth2 do
         gl_config = info["gitlab"]
         expires = gl_config["expires_at"]
         refresh_token = gl_config["refresh_token"]
-        access_token = gl_config["access_token"]
 
         cond do
-          is_nil(access_token) -> {:no_token, nil}
-          expires < OAuth2.Util.unix_now ->
+          is_nil(refresh_token) -> {:no_token, nil}
+          true ->
             {:ok, OAuth2.AccessToken.refresh!(
               %{refresh_token: refresh_token, client: oauth2_client})}
-          true ->
-            {:ok, OAuth2.AccessToken.new(access_token, oauth2_client)}
         end
       {:error, _} -> {:error, nil}
     end

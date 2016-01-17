@@ -4,6 +4,8 @@ defmodule BitBucket do
   any git parsing necessary.
   """
 
+  defstruct [:repo]
+
   import Git
   import BitBucket.OAuth2
 
@@ -33,19 +35,6 @@ defmodule BitBucket do
     |> Enum.map(fn(pr) ->
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
          end)
-  end
-
-  def issues(repo, state \\ nil) do
-    all_issues = get_resource!("/repositories/" <> repo <> "/issues")
-
-    filtered_issues = if state == nil do
-        all_issues
-      else
-        all_issues |> Enum.filter(fn(issue) -> issue["state"] == state end)
-      end
-
-    filtered_issues
-    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
   end
 
   def create_pull_request(repo, title, source, dest \\ nil) do
@@ -86,11 +75,7 @@ defmodule BitBucket do
     category_url(repo, "pull-requests", id)
   end
 
-  defp category_url(repo, category, id) do
-    "#{@web_base_url}/#{repo}/#{category}/#{id}"
-  end
-
-  defp get_resource!(path) do
+  def get_resource!(path) do
     token = oauth2_token
     resource = OAuth2.AccessToken.get!(token, path)
     resource.body["values"]
@@ -111,6 +96,10 @@ defmodule BitBucket do
     |> Enum.map(&Regex.replace(~r/^git@bitbucket.org:(.*).git$/, &1, "\\g{1}"))
     |> Enum.map(&Regex.replace(~r/^https:\/\/.+@bitbucket.org\/(.*).git$/, &1,
          "\\g{1}"))
+  end
+
+  defp category_url(repo, category, id) do
+    "#{@web_base_url}/#{repo}/#{category}/#{id}"
   end
 
   defp bitbucket_url?(url) do

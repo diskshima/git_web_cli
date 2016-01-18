@@ -11,30 +11,9 @@ defmodule BitBucket do
 
   @web_base_url "https://bitbucket.org"
 
-  # Components we have in this module:
-  # * Request
-  # * Issue / Pull Request / Repo level
-
   def repositories(owner) do
     resource = get_resource!("/repositories/" <> owner)
     resource |> Enum.map(fn(repo) -> repo["full_name"] end)
-  end
-
-  def pull_requests(repo, state \\ nil) do
-    base_path = "/repositories/" <> repo <> "/pullrequests"
-
-    path = if state do
-        base_path <> "?" <> URI.encode_query(%{state: String.upcase(state)})
-      else
-        base_path
-      end
-
-    resource = get_resource!(path)
-
-    resource
-    |> Enum.map(fn(pr) ->
-           %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
-         end)
   end
 
   def create_pull_request(repo, title, source, dest \\ nil) do

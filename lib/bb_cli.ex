@@ -15,7 +15,7 @@ defmodule BbCli do
 
     case subcommand do
       "repos" -> process_repos(other_args)
-      "pull-requests" -> process_pull_requests(other_args)
+      "pull-requests" -> process_pull_requests(remote, other_args)
       "pull-request" -> process_pull_request(other_args)
       "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(other_args)
@@ -89,13 +89,12 @@ defmodule BbCli do
     Launchy.open_url(url)
   end
 
-  defp process_pull_requests(other_args) do
+  defp process_pull_requests(remote, other_args) do
     {options, _, _} = OptionParser.parse(other_args,
       switches: [repo: :string, state: :string]
     )
 
-    repo = get_repo_or_default(options)
-    pulls = BitBucket.pull_requests(repo, options[:state])
+    pulls = remote |> Remote.pull_requests(options[:state])
 
     pulls
     |> Enum.sort_by(&Dict.get(&1, :id), &>=/2)

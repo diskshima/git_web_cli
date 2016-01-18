@@ -1,9 +1,13 @@
 defprotocol Remote do
   def issues(remote, state)
+  def issue_url(remote, id)
   def pull_requests(remote, state)
+  def pull_request_url(remote, id)
 end
 
 defimpl Remote, for: BitBucket do
+  @web_base_url "https://bitbucket.org"
+
   def issues(remote, state \\ nil) do
     all_issues = BitBucket.get_resource!("/repositories/" <> remote.repo <> "/issues")
 
@@ -33,6 +37,18 @@ defimpl Remote, for: BitBucket do
            %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
          end)
   end
+
+  def issue_url(remote, id) do
+    category_url(remote.repo, "issues", id)
+  end
+
+  def pull_request_url(remote, id) do
+    category_url(remote.repo, "pull-requests", id)
+  end
+
+  defp category_url(repo, category, id) do
+    "#{@web_base_url}/#{repo}/#{category}/#{id}"
+  end
 end
 
 defimpl Remote, for: GitLab do
@@ -48,7 +64,7 @@ defimpl Remote, for: GitLab do
       end
 
     GitLab.get_resource!(path)
-    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
+    |> Enum.map(fn(issue) -> %{id: issue["iid"], title: issue["title"]} end)
   end
 
   def pull_requests(remote, state \\ nil) do
@@ -67,5 +83,18 @@ defimpl Remote, for: GitLab do
     |> Enum.map(fn(pr) ->
            %{id: pr["iid"], title: pr["title"], url: pr["links"]["url"]}
          end)
+  end
+
+  def issue_url(remote, id) do
+    category_url(remote, "issues", id)
+  end
+
+  def pull_request_url(remote, id) do
+    category_url(remote, "merge_requests", id)
+  end
+
+  defp category_url(remote, category, id) do
+    host = GitLab.OAuth2.host_name
+    "#{host}/#{remote.repo}/#{category}/#{id}"
   end
 end

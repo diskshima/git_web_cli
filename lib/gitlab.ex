@@ -20,7 +20,6 @@ defmodule GitLab do
   end
 
   def search_repo_name(query) do
-    token = oauth2_token
     get_resource!("/projects/search/" <> query)
   end
 

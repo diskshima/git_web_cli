@@ -9,8 +9,6 @@ defmodule BitBucket do
   import Git
   import BitBucket.OAuth2
 
-  @web_base_url "https://bitbucket.org"
-
   def repositories(owner) do
     resource = get_resource!("/repositories/" <> owner)
     resource |> Enum.map(fn(repo) -> repo["full_name"] end)
@@ -46,14 +44,6 @@ defmodule BitBucket do
     |> Git.extract_repo_names
   end
 
-  def issue_url(repo, id) do
-    category_url(repo, "issues", id)
-  end
-
-  def pull_request_url(repo, id) do
-    category_url(repo, "pull-requests", id)
-  end
-
   def get_resource!(path) do
     token = oauth2_token
     resource = OAuth2.AccessToken.get!(token, path)
@@ -68,10 +58,6 @@ defmodule BitBucket do
   defp put_resource!(path, body) do
     token = oauth2_token
     OAuth2.AccessToken.put!(token, path, body)
-  end
-
-  defp category_url(repo, category, id) do
-    "#{@web_base_url}/#{repo}/#{category}/#{id}"
   end
 
   defp bitbucket_url?(url) do

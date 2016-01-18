@@ -27,7 +27,7 @@ defmodule GitLab.OAuth2 do
     end
   end
 
-  defp host_name do
+  def host_name do
     case Config.read do
       {:ok, config} -> config["gitlab"]["host"]
       {:error, error} -> raise error

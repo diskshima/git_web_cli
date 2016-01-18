@@ -19,7 +19,7 @@ defmodule BbCli do
       "pull-request" -> process_pull_request(other_args)
       "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(other_args)
-      "open" -> open_in_browser(other_args)
+      "open" -> open_in_browser(remote, other_args)
       "reponame" -> BitBucket.repo_names |> print_results
       _ -> IO.puts "Invalid argument"
     end
@@ -72,7 +72,7 @@ defmodule BbCli do
     repos |> print_results
   end
 
-  defp open_in_browser(other_args) do
+  defp open_in_browser(remote, other_args) do
     {options, args_left, _} = OptionParser.parse(other_args,
       switches: [repo: :string])
 
@@ -82,8 +82,8 @@ defmodule BbCli do
     repo = get_repo_or_default(options)
 
     url = case category do
-        "pull-request" -> BitBucket.pull_request_url(repo, id)
-        "issue" -> BitBucket.issue_url(repo, id)
+        "pull-request" -> remote |> Remote.pull_request_url(id)
+        "issue" -> remote |> Remote.issue_url(id)
       end
 
     Launchy.open_url(url)

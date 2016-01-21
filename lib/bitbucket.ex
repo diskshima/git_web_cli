@@ -14,18 +14,6 @@ defmodule BitBucket do
     resource |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
-  def create_pull_request(repo, title, source, dest \\ nil) do
-    params = %{title: title, source: %{branch: %{name: source}}}
-
-    if dest do
-      params = params |> Dict.merge(destination: %{branch: %{name: dest}})
-    end
-
-    resp = post_resource!("/repositories/" <> repo <> "/pullrequests", params)
-
-    resp.body
-  end
-
   def create_issue(repo, title, kind \\ nil, content \\ nil, priority \\ nil) do
     params = %{title: title}
 
@@ -50,7 +38,7 @@ defmodule BitBucket do
     resource.body["values"]
   end
 
-  defp post_resource!(path, body) do
+  def post_resource!(path, body) do
     token = oauth2_token
     OAuth2.AccessToken.post!(token, path, body)
   end

@@ -10,6 +10,11 @@ defmodule GitLab do
     resource.body
   end
 
+  def post_resource!(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.post!(token, path, body)
+  end
+
   def project_id(gl) do
     [path, name] = gl.repo |> String.split("/")
 

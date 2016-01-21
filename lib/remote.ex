@@ -3,6 +3,7 @@ defprotocol Remote do
   def issue_url(remote, id)
   def pull_requests(remote, state)
   def pull_request_url(remote, id)
+  def create_pull_request(remote, title, source, dest)
 end
 
 defimpl Remote, for: BitBucket do
@@ -32,10 +33,24 @@ defimpl Remote, for: BitBucket do
 
     resource = BitBucket.get_resource!(path)
 
-    resource
-    |> Enum.map(fn(pr) ->
-           %{id: pr["id"], title: pr["title"], url: pr["links"]["url"]}
-         end)
+    resource |> Enum.map(&to_simple_pr(&1))
+  end
+
+  def create_pull_request(remote, title, source, dest \\ nil) do
+    params = %{title: title, source: %{branch: %{name: source}}}
+
+    if dest do
+      params = params |> Dict.merge(destination: %{branch: %{name: dest}})
+    end
+
+    resp = BitBucket.post_resource!(
+      "/repositories/#{remote.repo}/pullrequests", params)
+
+    resp.body |> to_simple_pr
+  end
+
+  defp to_simple_pr(pr_body) do
+    %{id: pr_body["id"], title: pr_body["title"]}
   end
 
   def issue_url(remote, id) do
@@ -79,10 +94,23 @@ defimpl Remote, for: GitLab do
 
     resource = GitLab.get_resource!(path)
 
-    resource
-    |> Enum.map(fn(pr) ->
-           %{id: pr["iid"], title: pr["title"], url: pr["links"]["url"]}
-         end)
+    resource |> Enum.map(&to_simple_pr(&1))
+  end
+
+  def create_pull_request(remote, title, source, dest) do
+    project_id = remote |> GitLab.project_id
+    params = %{title: title, source_branch: source}
+    dest = dest || "master"
+    params = params |> Dict.merge(target_branch: dest)
+
+    resp = GitLab.post_resource!("/projects/#{project_id}/merge_requests",
+      params)
+
+    resp.body |> to_simple_pr
+  end
+
+  defp to_simple_pr(pr) do
+    %{id: pr["iid"], title: pr["title"]}
   end
 
   def issue_url(remote, id) do

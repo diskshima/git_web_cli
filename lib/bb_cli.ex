@@ -16,7 +16,7 @@ defmodule BbCli do
     case subcommand do
       "repos" -> process_repos(other_args)
       "pull-requests" -> process_pull_requests(remote, other_args)
-      "pull-request" -> process_pull_request(other_args)
+      "pull-request" -> process_pull_request(remote, other_args)
       "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(other_args)
       "open" -> open_in_browser(remote, other_args)
@@ -53,12 +53,13 @@ defmodule BbCli do
   end
 
   defp print_pullrequest_result(pr_body) do
+    # FIXME Fix dealing with errors
     msg = case pr_body do
         %{"error" => errors} ->
           errors["fields"]
           |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
           |> Enum.join("\n")
-        _ -> "Created pull request ##{pr_body["id"]}: #{pr_body["title"]}"
+        _ -> "Created pull request ##{pr_body[:id]}: #{pr_body[:title]}"
       end
 
     IO.puts(msg)
@@ -73,13 +74,11 @@ defmodule BbCli do
   end
 
   defp open_in_browser(remote, other_args) do
-    {options, args_left, _} = OptionParser.parse(other_args,
+    {_, args_left, _} = OptionParser.parse(other_args,
       switches: [repo: :string])
 
     {category, args_left2} = args_left |> ListExt.pop
     {id, _} = args_left2 |> ListExt.pop
-
-    repo = get_repo_or_default(options)
 
     url = case category do
         "pull-request" -> remote |> Remote.pull_request_url(id)
@@ -102,15 +101,15 @@ defmodule BbCli do
     |> print_results
   end
 
-  defp process_pull_request(other_args) do
+  defp process_pull_request(remote, other_args) do
     {options, _, _} = OptionParser.parse(other_args,
       switches: [repo: :string, title: :string, source: :string, target: :string]
     )
 
-    repo = get_repo_or_default(options)
     source = options[:source] || Git.current_branch
-    repo |> BitBucket.create_pull_request(options[:title], source,
-         options[:target])
+
+    remote
+    |> Remote.create_pull_request(options[:title], source, options[:target])
     |> print_pullrequest_result
   end
 

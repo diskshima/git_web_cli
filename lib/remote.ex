@@ -1,6 +1,7 @@
 defprotocol Remote do
   def issues(remote, state)
   def issue_url(remote, id)
+  def create_issue(remote, title, options)
   def pull_requests(remote, state)
   def pull_request_url(remote, id)
   def create_pull_request(remote, title, source, dest)
@@ -19,7 +20,28 @@ defimpl Remote, for: BitBucket do
       end
 
     filtered_issues
-    |> Enum.map(fn(issue) -> %{id: issue["id"], title: issue["title"]} end)
+    |> Enum.map(&to_simple_pr(&1))
+  end
+
+  def create_issue(remote, title, options) do
+    params = %{title: title}
+
+    if options |> Dict.has_key?(:description) do
+      params = params |> Dict.merge(%{content: %{raw: options[:description]}})
+    end
+
+    if options |> Dict.has_key?(:kind) do
+      params = params |> Dict.merge(%{kind: options[:kind]})
+    end
+
+    if options |> Dict.has_key?(:priority) do
+      params = params |> Dict.merge(%{priority: options[:priority]})
+    end
+
+    resp = BitBucket.post_resource!("/repositories/#{remote.repo}/issues",
+      params)
+
+    resp.body |> to_simple_pr
   end
 
   def pull_requests(remote, state \\ nil) do
@@ -79,7 +101,25 @@ defimpl Remote, for: GitLab do
       end
 
     GitLab.get_resource!(path)
-    |> Enum.map(fn(issue) -> %{id: issue["iid"], title: issue["title"]} end)
+    |> Enum.map(&to_simple_pr(&1))
+  end
+
+
+  def create_issue(remote, title, options) do
+    project_id = remote |> GitLab.project_id
+    params = %{title: title}
+
+    if options |> Dict.has_key?(:description) do
+      params = params |> Dict.merge(%{description: options[:description]})
+    end
+
+    if options |> Dict.has_key?(:labels) do
+      params = params |> Dict.merge(%{labels: options[:labels]})
+    end
+
+    resp = GitLab.post_resource!("/projects/#{project_id}/issues", params)
+
+    resp.body |> to_simple_pr
   end
 
   def pull_requests(remote, state \\ nil) do

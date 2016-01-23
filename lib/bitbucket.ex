@@ -14,18 +14,6 @@ defmodule BitBucket do
     resource |> Enum.map(fn(repo) -> repo["full_name"] end)
   end
 
-  def create_issue(repo, title, kind \\ nil, content \\ nil, priority \\ nil) do
-    params = %{title: title}
-
-    if content, do: params = params |> Dict.merge(%{content: %{raw: content}})
-    if kind, do: params = params |> Dict.merge(%{kind: kind})
-    if priority, do: params = params |> Dict.merge(%{priority: priority})
-
-    resp = post_resource!("/repositories/" <> repo <> "/issues", params)
-
-    resp.body
-  end
-
   def repo_names do
     remote_urls
     |> Enum.filter(&bitbucket_url?(&1))

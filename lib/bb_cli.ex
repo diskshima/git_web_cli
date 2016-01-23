@@ -18,7 +18,7 @@ defmodule BbCli do
       "pull-requests" -> process_pull_requests(remote, other_args)
       "pull-request" -> process_pull_request(remote, other_args)
       "issues" -> process_issues(remote, other_args)
-      "issue" -> process_issue(other_args)
+      "issue" -> process_issue(remote, other_args)
       "open" -> open_in_browser(remote, other_args)
       "reponame" -> BitBucket.repo_names |> print_results
       _ -> IO.puts "Invalid argument"
@@ -46,7 +46,7 @@ defmodule BbCli do
             errors["fields"]
             |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
             |> Enum.join("\n")
-        _ -> "Created issue ##{issue_body["id"]}: #{issue_body["title"]}"
+        _ -> "Created issue ##{issue_body[:id]}: #{issue_body[:title]}"
       end
 
     IO.puts(msg)
@@ -125,14 +125,16 @@ defmodule BbCli do
     |> print_results
   end
 
-   defp process_issue(other_args) do
+   defp process_issue(remote, other_args) do
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [title: :string, kind: :string, content: :string,
-        priority: :string])
-    repo = get_repo_or_default(options)
-    issue_body = BitBucket.create_issue(repo, options[:title], options[:kind],
-      options[:content], options[:priority])
-    print_issue_result(issue_body)
+      switches: [title: :string, description: :string, kind: :string,
+        priority: :string, labels: :string])
+
+    other_opts = options |> Dict.drop([:title])
+
+    remote
+    |> Remote.create_issue(options[:title], other_opts)
+    |> print_issue_result
   end
 
   def get_remote(options) do

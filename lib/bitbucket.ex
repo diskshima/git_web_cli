@@ -9,11 +9,6 @@ defmodule BitBucket do
   import Git
   import BitBucket.OAuth2
 
-  def repositories(owner) do
-    resource = get_resource!("/repositories/" <> owner)
-    resource |> Enum.map(fn(repo) -> repo["full_name"] end)
-  end
-
   def repo_names do
     remote_urls
     |> Enum.filter(&bitbucket_url?(&1))

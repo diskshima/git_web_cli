@@ -14,13 +14,11 @@ defmodule BbCli do
     remote = get_remote(other_args)
 
     case subcommand do
-      "repos" -> process_repos(other_args)
       "pull-requests" -> process_pull_requests(remote, other_args)
       "pull-request" -> process_pull_request(remote, other_args)
       "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(remote, other_args)
       "open" -> open_in_browser(remote, other_args)
-      "reponame" -> BitBucket.repo_names |> print_results
       _ -> IO.puts "Invalid argument"
     end
   end
@@ -63,14 +61,6 @@ defmodule BbCli do
       end
 
     IO.puts(msg)
-  end
-
-  defp process_repos(other_args) do
-    {options, _, _} = OptionParser.parse(other_args, switches: [username: :string])
-
-    owner = options[:username]
-    repos = BitBucket.repositories(owner)
-    repos |> print_results
   end
 
   defp open_in_browser(remote, other_args) do

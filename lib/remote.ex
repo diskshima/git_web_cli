@@ -41,7 +41,7 @@ defimpl Remote, for: BitBucket do
     resp = BitBucket.post_resource!("/repositories/#{remote.repo}/issues",
       params)
 
-    resp.body |> to_simple_pr
+    handle_response(resp.body)
   end
 
   def pull_requests(remote, state \\ nil) do
@@ -68,11 +68,7 @@ defimpl Remote, for: BitBucket do
     resp = BitBucket.post_resource!(
       "/repositories/#{remote.repo}/pullrequests", params)
 
-    resp.body |> to_simple_pr
-  end
-
-  defp to_simple_pr(pr_body) do
-    %{id: pr_body["id"], title: pr_body["title"]}
+    handle_response(resp.body)
   end
 
   def issue_url(remote, id) do
@@ -85,6 +81,27 @@ defimpl Remote, for: BitBucket do
 
   defp category_url(repo, category, id) do
     "#{@web_base_url}/#{repo}/#{category}/#{id}"
+  end
+
+  defp handle_response(body) do
+    case body do
+      %{"error" => %{"fields" => fields}} ->
+        %{error: build_field_error(fields)}
+      %{"error" => msg} -> %{error: msg}
+      body -> body |> to_simple_pr
+    end
+  end
+
+  defp build_field_error(fields) do
+    fields
+    |> Enum.map(fn({field, msg}) ->
+      msgs = msg |> Enum.join(",")
+      "#{field}: #{msgs}" end)
+    |> Enum.join(",")
+  end
+
+  defp to_simple_pr(pr_body) do
+    %{id: pr_body["id"], title: pr_body["title"]}
   end
 end
 
@@ -103,7 +120,6 @@ defimpl Remote, for: GitLab do
     GitLab.get_resource!(path)
     |> Enum.map(&to_simple_pr(&1))
   end
-
 
   def create_issue(remote, title, options) do
     project_id = remote |> GitLab.project_id
@@ -146,7 +162,14 @@ defimpl Remote, for: GitLab do
     resp = GitLab.post_resource!("/projects/#{project_id}/merge_requests",
       params)
 
-    resp.body |> to_simple_pr
+    resp.body |> handle_response
+  end
+
+  defp handle_response(body) do
+    case body do
+      %{"message" => message} -> %{error: message}
+      body -> to_simple_pr(body)
+    end
   end
 
   defp to_simple_pr(pr) do

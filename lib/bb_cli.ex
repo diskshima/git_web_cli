@@ -51,13 +51,9 @@ defmodule BbCli do
   end
 
   defp print_pullrequest_result(pr_body) do
-    # FIXME Fix dealing with errors
     msg = case pr_body do
-        %{"error" => errors} ->
-          errors["fields"]
-          |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
-          |> Enum.join("\n")
-        _ -> "Created pull request ##{pr_body[:id]}: #{pr_body[:title]}"
+        %{id: id, title: title} -> "Created pull request ##{id}: #{title}"
+        %{error: message} -> message
       end
 
     IO.puts(msg)

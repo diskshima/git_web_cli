@@ -13,9 +13,10 @@ defmodule Config do
   end
 
   def save(content) do
+    converted = content |> Utils.stringify_keys
     new_content =
       case read do
-        {:ok, existing} -> Dict.merge(existing, content)
+        {:ok, existing} -> Dict.merge(existing, converted)
         {:error, reason} -> content
       end
 

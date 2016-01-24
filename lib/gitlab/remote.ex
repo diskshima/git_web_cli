@@ -5,7 +5,8 @@ defimpl Remote, for: GitLab do
     base_path = "/projects/#{project_id}/issues"
 
     path = if state do
-        base_path <> "?" <> URI.encode_query(%{state: state})
+        query_string = URI.encode_query(%{state: state})
+        "#{base_path}?#{query_string}"
       else
         base_path
       end
@@ -52,7 +53,8 @@ defimpl Remote, for: GitLab do
     base_path = "/projects/#{project_id}/merge_requests"
 
     path = if state do
-        base_path <> "?" <> URI.encode_query(%{state: state})
+        query_string = URI.encode_query(%{state: state})
+        "#{base_path}?#{query_string}"
       else
         base_path
       end

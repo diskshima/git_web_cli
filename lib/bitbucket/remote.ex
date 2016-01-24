@@ -42,10 +42,11 @@ defimpl Remote, for: BitBucket do
   end
 
   def pull_requests(remote, state \\ nil) do
-    base_path = "/repositories/" <> remote.repo <> "/pullrequests"
+    base_path = "/repositories/#{remote.repo}/pullrequests"
 
     path = if state do
-        base_path <> "?" <> URI.encode_query(%{state: String.upcase(state)})
+        query_string = URI.encode_query(%{state: String.upcase(state)})
+        "#{base_path}?#{query_string}"
       else
         base_path
       end

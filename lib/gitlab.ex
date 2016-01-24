@@ -44,6 +44,6 @@ defmodule GitLab do
   end
 
   defp search_repo_name(query) do
-    get_resource!("/projects/search/" <> query)
+    get_resource!("/projects/search/#{query}")
   end
 end

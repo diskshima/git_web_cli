@@ -19,6 +19,7 @@ defmodule BbCli do
       "issues" -> process_issues(remote, other_args)
       "issue" -> process_issue(remote, other_args)
       "open" -> open_in_browser(remote, other_args)
+      "close" -> process_close(remote, other_args)
       _ -> IO.puts "Invalid argument"
     end
   end
@@ -38,13 +39,10 @@ defmodule BbCli do
     IO.puts Enum.join(list, "\r\n")
   end
 
-  defp print_issue_result(issue_body) do
+  defp print_issue_result(issue_body, verb) do
     msg = case issue_body do
-          %{"error" => errors} ->
-            errors["fields"]
-            |> Enum.map(fn({_, messages}) -> messages |> Enum.join(", ") end)
-            |> Enum.join("\n")
-        _ -> "Created issue ##{issue_body[:id]}: #{issue_body[:title]}"
+        %{id: id, title: title} -> "#{verb} issue ##{id}: #{title}"
+        %{error: message} -> message
       end
 
     IO.puts(msg)
@@ -120,7 +118,21 @@ defmodule BbCli do
 
     remote
     |> Remote.create_issue(options[:title], other_opts)
-    |> print_issue_result
+    |> print_issue_result("Created")
+  end
+
+  defp process_close(remote, other_args) do
+    {_, args_left, _} = OptionParser.parse(other_args)
+
+    {category, args_left2} = args_left |> ListExt.pop
+    {id, _} = args_left2 |> ListExt.pop
+
+    case category do
+      # "pull-request" -> remote |> Remote.close_pull_request(id)
+      "issue" -> remote
+        |> Remote.close_issue(id)
+        |> print_issue_result("Closed")
+    end
   end
 
   def get_remote(options) do

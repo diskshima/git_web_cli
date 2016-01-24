@@ -2,7 +2,9 @@ defimpl Remote, for: BitBucket do
   @web_base_url "https://bitbucket.org"
 
   def issues(remote, state \\ nil) do
-    all_issues = BitBucket.get_resource!("/repositories/" <> remote.repo <> "/issues")
+    resource = BitBucket.get_resource!("/repositories/#{remote.repo}/issues").body
+
+    all_issues = resource["values"]
 
     filtered_issues = if state == nil do
         all_issues
@@ -35,7 +37,7 @@ defimpl Remote, for: BitBucket do
     handle_response(resp.body)
   end
 
-  def close_issue(remote, id) do
+  def close_issue(_, _) do
     raise "Updating issues is not supported by the BitBucket API v2"
   end
 
@@ -50,7 +52,7 @@ defimpl Remote, for: BitBucket do
 
     resource = BitBucket.get_resource!(path)
 
-    resource |> Enum.map(&to_simple_pr(&1))
+    resource.body["values"] |> Enum.map(&to_simple_pr(&1))
   end
 
   def create_pull_request(remote, title, source, dest \\ nil) do

@@ -20,8 +20,7 @@ defmodule BitBucket do
 
     opts = if params, do: [params: params], else: []
 
-    resource = OAuth2.AccessToken.get!(token, path, [], opts)
-    resource.body["values"]
+    OAuth2.AccessToken.get!(token, path, [], opts)
   end
 
   def post_resource!(path, body) do

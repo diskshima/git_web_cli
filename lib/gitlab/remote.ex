@@ -10,7 +10,9 @@ defimpl Remote, for: GitLab do
         base_path
       end
 
-    GitLab.get_resource!(path)
+    resource = GitLab.get_resource!(path)
+
+    resource.body
     |> Enum.map(&to_simple_pr(&1))
   end
 
@@ -57,7 +59,7 @@ defimpl Remote, for: GitLab do
 
     resource = GitLab.get_resource!(path)
 
-    resource |> Enum.map(&to_simple_pr(&1))
+    resource.body |> Enum.map(&to_simple_pr(&1))
   end
 
   def create_pull_request(remote, title, source, dest) do
@@ -82,7 +84,7 @@ defimpl Remote, for: GitLab do
 
     resource = GitLab.get_resource!(path, params)
 
-    case resource do
+    case resource.body do
       [] -> nil
       [issue] -> issue
       _ -> raise "More than one returned"

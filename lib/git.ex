@@ -5,7 +5,7 @@ defmodule Git do
 
   def remote_urls do
     read_git_config
-    |> Enum.filter(fn({k, v}) -> is_remote_section?(k) end)
+    |> Enum.filter(fn({k, _}) -> is_remote_section?(k) end)
     |> Enum.map(fn({_, v}) -> v[:url] end)
   end
 

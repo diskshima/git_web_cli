@@ -19,8 +19,7 @@ defmodule GitLab do
 
     opts = if params, do: [params: params], else: []
 
-    resource = OAuth2.AccessToken.get!(token, path, [], opts)
-    resource.body
+    OAuth2.AccessToken.get!(token, path, [], opts)
   end
 
   def post_resource!(path, body) do
@@ -36,13 +35,15 @@ defmodule GitLab do
   def project_id(gitlab) do
     [path, name] = gitlab.repo |> String.split("/")
 
-    search_repo_name(name)
+    resource = search_repo_name(name)
+
+    resource.body
     |> Enum.filter(&(&1["namespace"]["path"] == path))
     |> Enum.at(0)
     |> Dict.get("id")
   end
 
-  def search_repo_name(query) do
-    get_resource!("/projects/search/" <> query)
+  defp search_repo_name(query) do
+    get_resource!("/projects/search/#{query}")
   end
 end

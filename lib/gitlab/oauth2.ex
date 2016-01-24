@@ -40,8 +40,8 @@ defmodule GitLab.OAuth2 do
       client_id: @client_id,
       client_secret: @client_secret,
       redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
-      site: host_name <> "/api/v3",
-      token_url: host_name <> "/oauth/token",
+      site: "#{host_name}/api/v3",
+      token_url: "#{host_name}/oauth/token",
       headers: [{"Accept", "application/json"},
         {"Content-Type", "application/json"}]
     ])

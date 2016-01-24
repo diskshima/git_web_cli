@@ -17,7 +17,7 @@ defmodule Config do
     new_content =
       case read do
         {:ok, existing} -> Dict.merge(existing, converted)
-        {:error, reason} -> content
+        {:error, _} -> content
       end
 
     json = Poison.encode!(new_content, [pretty: true])

@@ -14,15 +14,23 @@ defmodule GitLab do
     |> Git.extract_repo_names
   end
 
-  def get_resource!(path) do
+  def get_resource!(path, params \\ nil) do
     token = oauth2_token
-    resource = OAuth2.AccessToken.get!(token, path)
+
+    opts = if params, do: [params: params], else: []
+
+    resource = OAuth2.AccessToken.get!(token, path, [], opts)
     resource.body
   end
 
   def post_resource!(path, body) do
     token = oauth2_token
     OAuth2.AccessToken.post!(token, path, body)
+  end
+
+  def put_resource!(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.put!(token, path, body)
   end
 
   def project_id(gitlab) do

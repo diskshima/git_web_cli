@@ -2,6 +2,7 @@ defprotocol Remote do
   def issues(remote, state)
   def issue_url(remote, id)
   def create_issue(remote, title, options)
+  def close_issue(remote, id)
   def pull_requests(remote, state)
   def pull_request_url(remote, id)
   def create_pull_request(remote, title, source, dest)
@@ -42,6 +43,10 @@ defimpl Remote, for: BitBucket do
       params)
 
     handle_response(resp.body)
+  end
+
+  def close_issue(remote, id) do
+    raise "Updating issues is not supported by the BitBucket API v2"
   end
 
   def pull_requests(remote, state \\ nil) do
@@ -88,7 +93,8 @@ defimpl Remote, for: BitBucket do
       %{"error" => %{"fields" => fields}} ->
         %{error: build_field_error(fields)}
       %{"error" => msg} -> %{error: msg}
-      body -> body |> to_simple_pr
+      %{"id" => _, "title" => _ } -> body |> to_simple_pr
+      _ -> raise "Cannot handle #{body |> IO.inspect}"
     end
   end
 
@@ -138,6 +144,20 @@ defimpl Remote, for: GitLab do
     resp.body |> to_simple_pr
   end
 
+  def close_issue(remote, iid) do
+    project_id = remote |> GitLab.project_id
+
+    issue = remote |> get_issue(iid, [project_id: project_id])
+    id = issue["id"]
+    path = "/projects/#{project_id}/issues/#{id}"
+    params = %{state_event: "close"}
+
+    resp = GitLab.put_resource!(path, params)
+
+    resp.body
+    |> handle_response
+  end
+
   def pull_requests(remote, state \\ nil) do
     project_id = remote |> GitLab.project_id
     base_path = "/projects/#{project_id}/merge_requests"
@@ -165,10 +185,28 @@ defimpl Remote, for: GitLab do
     resp.body |> handle_response
   end
 
+  defp get_issue(remote, iid, opts \\ []) do
+    project_id = opts[:project_id]
+
+    unless project_id, do: project_id = remote |> GitLab.project_id
+
+    path = "/projects/#{project_id}/issues"
+    params = [iid: iid]
+
+    resource = GitLab.get_resource!(path, params)
+
+    case resource do
+      [] -> nil
+      [issue] -> issue
+      _ -> raise "More than one returned"
+    end
+  end
+
   defp handle_response(body) do
     case body do
       %{"message" => message} -> %{error: message}
-      body -> to_simple_pr(body)
+      %{"iid" => _, "title" => _ } -> body |> to_simple_pr
+      _ -> raise "Cannot handle #{body |> IO.inspect}"
     end
   end
 

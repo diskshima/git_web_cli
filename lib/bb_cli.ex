@@ -13,14 +13,20 @@ defmodule BbCli do
 
     remote = get_remote(other_args)
 
-    case subcommand do
-      "pull-requests" -> process_pull_requests(remote, other_args)
-      "pull-request" -> process_pull_request(remote, other_args)
-      "issues" -> process_issues(remote, other_args)
-      "issue" -> process_issue(remote, other_args)
-      "open" -> open_in_browser(remote, other_args)
-      "close" -> process_close(remote, other_args)
-      _ -> IO.puts "Invalid argument"
+    cond do
+      ~w(pull-requests prs) |> Enum.member?(subcommand) ->
+        process_pull_requests(remote, other_args)
+      ~w(pull-request pr) |> Enum.member?(subcommand) ->
+        process_pull_request(remote, other_args)
+      ~w(issues is) |> Enum.member?(subcommand) ->
+        process_issues(remote, other_args)
+      ~w(issue i) |> Enum.member?(subcommand) ->
+        process_issue(remote, other_args)
+      ~w(open o) |> Enum.member?(subcommand) ->
+        open_in_browser(remote, other_args)
+      ~w(close cl) |> Enum.member?(subcommand) ->
+        process_close(remote, other_args)
+      true -> IO.puts "Invalid argument"
     end
   end
 
@@ -64,9 +70,11 @@ defmodule BbCli do
     {category, args_left2} = args_left |> ListExt.pop
     {id, _} = args_left2 |> ListExt.pop
 
-    url = case category do
-        "pull-request" -> remote |> Remote.pull_request_url(id)
-        "issue" -> remote |> Remote.issue_url(id)
+    url = cond do
+        ~w(pull-request pr) |> Enum.member?(category) ->
+          remote |> Remote.pull_request_url(id)
+        ~w(issue i) |> Enum.member?(category) ->
+          remote |> Remote.issue_url(id)
       end
 
     Launchy.open_url(url)
@@ -127,9 +135,11 @@ defmodule BbCli do
     {category, args_left2} = args_left |> ListExt.pop
     {id, _} = args_left2 |> ListExt.pop
 
-    case category do
-      # "pull-request" -> remote |> Remote.close_pull_request(id)
-      "issue" -> remote
+    cond do
+      # ~w(pull-request pr) |> Enum.member?(category) ->
+      #   remote |> Remote.close_pull_request(id)
+      ~w(issue i) |> Enum.member?(category) ->
+        remote
         |> Remote.close_issue(id)
         |> print_issue_result("Closed")
     end

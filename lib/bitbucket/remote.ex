@@ -2,6 +2,8 @@ defimpl Remote, for: BitBucket do
   @web_base_url "https://bitbucket.org"
 
   def issues(remote, state \\ nil) do
+    state = state || "new"
+
     resource = BitBucket.get_resource!("/repositories/#{remote.repo}/issues").body
 
     all_issues = resource["values"]

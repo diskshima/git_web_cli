@@ -1,5 +1,7 @@
 defimpl Remote, for: GitLab do
   def issues(remote, state \\ nil) do
+    state = state || "opened"
+
     project_id = remote |> GitLab.project_id
 
     base_path = "/projects/#{project_id}/issues"

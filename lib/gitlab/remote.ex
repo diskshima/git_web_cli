@@ -51,6 +51,8 @@ defimpl Remote, for: GitLab do
   end
 
   def pull_requests(remote, state \\ nil) do
+    state = state || "opened"
+
     project_id = remote |> GitLab.project_id
     base_path = "/projects/#{project_id}/merge_requests"
 

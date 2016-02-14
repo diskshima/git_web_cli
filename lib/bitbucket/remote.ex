@@ -58,11 +58,15 @@ defimpl Remote, for: BitBucket do
     resource.body["values"] |> Enum.map(&to_simple_pr(&1))
   end
 
-  def create_pull_request(remote, title, source, dest \\ nil) do
+  def create_pull_request(remote, title, source, dest \\ nil, options \\ nil) do
     params = %{title: title, source: %{branch: %{name: source}}}
 
     if dest do
       params = params |> Dict.merge(destination: %{branch: %{name: dest}})
+    end
+
+    if options[:remove_source_branch] do
+      params = params |> Dict.merge(close_source_branch: true)
     end
 
     resp = BitBucket.post_resource!(

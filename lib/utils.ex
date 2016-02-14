@@ -10,4 +10,12 @@ defmodule Utils do
     tuples |> Enum.map(
       fn(tuple) -> {elem(tuple, 0) |> Atom.to_string, elem(tuple, 1)} end)
   end
+
+  def prompt_if_blank(value, _) when (length(value)> 0) do
+    value
+  end
+
+  def prompt_if_blank(_, prompt_message) do
+    IO.gets(prompt_message)
+  end
 end

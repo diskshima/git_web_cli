@@ -12,7 +12,7 @@ defmodule BbCli.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :httpoison]]
+    [applications: [:logger, :httpoison, :ex_link_header]]
   end
 
   defp deps do
@@ -21,6 +21,7 @@ defmodule BbCli.Mixfile do
       {:ini, "~> 0.0.1"},
       {:oauth2, "~> 0.5"},
       {:dogma, "~> 0.0", only: :dev},
+      {:ex_link_header, "~> 0.0.3"},
     ]
   end
 end

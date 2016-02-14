@@ -13,9 +13,9 @@ defimpl Remote, for: GitLab do
         base_path
       end
 
-    resource = GitLab.get_resource!(path)
+    values = aggregate_results(path, [])
 
-    resource.body
+    values
     |> Enum.map(&to_simple_pr(&1))
   end
 
@@ -63,9 +63,9 @@ defimpl Remote, for: GitLab do
         base_path
       end
 
-    resource = GitLab.get_resource!(path)
+    values = aggregate_results(path, [])
 
-    resource.body |> Enum.map(&to_simple_pr(&1))
+    values |> Enum.map(&to_simple_pr(&1))
   end
 
   def create_pull_request(remote, title, source, dest, options \\ nil) do
@@ -107,6 +107,29 @@ defimpl Remote, for: GitLab do
       %{"message" => message} -> %{error: message}
       %{"iid" => _, "title" => _ } -> body |> to_simple_pr
       _ -> raise "Cannot handle #{body |> IO.inspect}"
+    end
+  end
+
+  defp aggregate_results(nil, values) do
+    values
+  end
+
+  defp aggregate_results(url, values) do
+    resource = GitLab.get_resource!(url)
+
+    values = values ++ resource.body
+
+    link_value = resource.headers |> find_header("Link")
+
+    link_header = ExLinkHeader.parse!(link_value)
+
+    aggregate_results(link_header["next"]["url"], values)
+  end
+
+  defp find_header(headers, key) do
+    case headers |> Enum.find(fn {k, _} -> k == key end) do
+      {_, v} -> v
+      _ -> nil
     end
   end
 

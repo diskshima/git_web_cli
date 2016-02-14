@@ -4,9 +4,9 @@ defimpl Remote, for: BitBucket do
   def issues(remote, state \\ nil) do
     state = state || "new"
 
-    resource = BitBucket.get_resource!("/repositories/#{remote.repo}/issues").body
+    url = "/repositories/#{remote.repo}/issues"
 
-    all_issues = resource["values"]
+    all_issues = aggregate_results(url, [])
 
     filtered_issues = if state == nil do
         all_issues
@@ -53,9 +53,9 @@ defimpl Remote, for: BitBucket do
         base_path
       end
 
-    resource = BitBucket.get_resource!(path)
+    all_prs = aggregate_results(path, [])
 
-    resource.body["values"] |> Enum.map(&to_simple_pr(&1))
+    all_prs |> Enum.map(&to_simple_pr(&1))
   end
 
   def create_pull_request(remote, title, source, dest \\ nil, options \\ nil) do
@@ -81,6 +81,18 @@ defimpl Remote, for: BitBucket do
 
   def pull_request_url(remote, id) do
     category_url(remote.repo, "pull-requests", id)
+  end
+
+  defp aggregate_results(nil, values) do
+    values
+  end
+
+  defp aggregate_results(url, values) do
+    resource = BitBucket.get_resource!(url).body
+    next_url = resource["next"]
+    values = values |> Enum.concat(resource["values"])
+
+    aggregate_results(next_url, values)
   end
 
   defp category_url(repo, category, id) do

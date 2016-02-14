@@ -68,11 +68,16 @@ defimpl Remote, for: GitLab do
     resource.body |> Enum.map(&to_simple_pr(&1))
   end
 
-  def create_pull_request(remote, title, source, dest) do
+  def create_pull_request(remote, title, source, dest, options \\ nil) do
+    if options |> Keyword.has_key?(:remove_source_branch) do
+      IO.puts("Warining: remove source branch on pull request creation is not supported in GitLab. Ignoring the option.")
+      options = options |> Keyword.delete(:remove_source_branch)
+    end
+
     project_id = remote |> GitLab.project_id
-    params = %{title: title, source_branch: source}
     dest = dest || "master"
-    params = params |> Dict.merge(target_branch: dest)
+    params = %{title: title, source_branch: source}
+              |> Dict.merge(target_branch: dest)
 
     resp = GitLab.post_resource!("/projects/#{project_id}/merge_requests",
       params)

@@ -95,14 +95,15 @@ defmodule BbCli do
 
   defp process_pull_request(remote, other_args) do
     {options, _, _} = OptionParser.parse(other_args,
-      switches: [repo: :string, title: :string, source: :string, target: :string]
+      switches: [repo: :string, title: :string, source: :string, target: :string, r: :boolean]
     )
 
     title = Utils.prompt_if_blank(options[:title], 'Enter issue title > ')
     source = options[:source] || Git.current_branch
 
     remote
-    |> Remote.create_pull_request(title, source, options[:target])
+    |> Remote.create_pull_request(title, source, options[:target],
+         remove_source_branch: options[:r])
     |> print_pullrequest_result
   end
 

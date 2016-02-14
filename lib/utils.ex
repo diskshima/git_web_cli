@@ -11,7 +11,7 @@ defmodule Utils do
       fn(tuple) -> {elem(tuple, 0) |> Atom.to_string, elem(tuple, 1)} end)
   end
 
-  def prompt_if_blank(value, _) when (length(value)> 0) do
+  def prompt_if_blank(value, _) when is_nil(value) == false do
     value
   end
 

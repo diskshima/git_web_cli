@@ -98,10 +98,11 @@ defmodule BbCli do
       switches: [repo: :string, title: :string, source: :string, target: :string]
     )
 
+    title = Utils.prompt_if_blank(options[:title], 'Enter issue title > ')
     source = options[:source] || Git.current_branch
 
     remote
-    |> Remote.create_pull_request(options[:title], source, options[:target])
+    |> Remote.create_pull_request(title, source, options[:target])
     |> print_pullrequest_result
   end
 
@@ -122,10 +123,11 @@ defmodule BbCli do
       switches: [title: :string, description: :string, kind: :string,
         priority: :string, labels: :string])
 
+    title = Utils.prompt_if_blank(options[:title], 'Enter pull request title > ')
     other_opts = options |> Dict.drop([:title])
 
     remote
-    |> Remote.create_issue(options[:title], other_opts)
+    |> Remote.create_issue(title, other_opts)
     |> print_issue_result("Created")
   end
 

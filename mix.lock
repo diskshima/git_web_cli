@@ -1,5 +1,6 @@
 %{"certifi": {:hex, :certifi, "0.3.0"},
   "dogma": {:hex, :dogma, "0.0.11"},
+  "ex_link_header": {:hex, :ex_link_header, "0.0.3"},
   "hackney": {:hex, :hackney, "1.4.8"},
   "httpoison": {:hex, :httpoison, "0.8.0"},
   "idna": {:hex, :idna, "1.0.3"},

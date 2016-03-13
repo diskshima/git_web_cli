@@ -13,9 +13,20 @@ defmodule Git do
     String.starts_with?(Atom.to_string(section), "remote")
   end
 
-  def git_dir do
-    # TODO Recursively search parent directories for any .git directory
-    ".git"
+  def git_dir(cur_path \\ ".") do
+    expanded_cur_path = cur_path |> Path.expand
+    cur_git_dir = expanded_cur_path |> Path.join(".git")
+
+    if File.exists?(cur_git_dir) do
+      cur_git_dir
+    else
+      if cur_path == "/" do
+        nil
+      else
+        parent_dir = expanded_cur_path |> Path.join("..")
+        git_dir(parent_dir)
+      end
+    end
   end
 
   def current_branch do

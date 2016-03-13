@@ -98,7 +98,7 @@ defmodule BbCli do
       switches: [repo: :string, title: :string, source: :string, target: :string, r: :boolean]
     )
 
-    title = Utils.prompt_if_blank(options[:title], 'Enter issue title > ')
+    title = Utils.prompt_if_blank(options[:title], 'Enter pull request title > ')
     source = options[:source] || Git.current_branch
     target = options[:target]
 
@@ -126,7 +126,7 @@ defmodule BbCli do
       switches: [title: :string, description: :string, kind: :string,
         priority: :string, labels: :string])
 
-    title = Utils.prompt_if_blank(options[:title], 'Enter pull request title > ')
+    title = Utils.prompt_if_blank(options[:title], 'Enter issue title > ')
     other_opts = options |> Dict.drop([:title])
 
     remote

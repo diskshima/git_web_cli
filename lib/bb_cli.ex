@@ -100,10 +100,12 @@ defmodule BbCli do
 
     title = Utils.prompt_if_blank(options[:title], 'Enter issue title > ')
     source = options[:source] || Git.current_branch
+    target = options[:target]
+
+    pr_opts = if options[:r], do: [remove_source_branch: options[:r]], else: []
 
     remote
-    |> Remote.create_pull_request(title, source, options[:target],
-         remove_source_branch: options[:r])
+    |> Remote.create_pull_request(title, source, target, pr_opts)
     |> print_pullrequest_result
   end
 

@@ -18,4 +18,11 @@ defmodule Utils do
   def prompt_if_blank(_, prompt_message) do
     IO.gets(prompt_message)
   end
+
+  def find_header(headers, key) do
+    case headers |> Enum.find(fn {k, _} -> k == key end) do
+      {_, v} -> v
+      _ -> nil
+    end
+  end
 end

@@ -119,18 +119,11 @@ defimpl Remote, for: GitLab do
 
     values = values ++ resource.body
 
-    link_value = resource.headers |> find_header("Link")
+    link_value = resource.headers |> Utils.find_header("Link")
 
     link_header = ExLinkHeader.parse!(link_value)
 
     aggregate_results(link_header["next"]["url"], values)
-  end
-
-  defp find_header(headers, key) do
-    case headers |> Enum.find(fn {k, _} -> k == key end) do
-      {_, v} -> v
-      _ -> nil
-    end
   end
 
   defp to_simple_pr(pr) do

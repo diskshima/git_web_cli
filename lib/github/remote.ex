@@ -34,20 +34,13 @@ defimpl Remote, for: GitHub do
   end
 
   defp try_extract_link(resource) do
-    link_value = resource.headers |> find_header("Link")
+    link_value = resource.headers |> Utils.find_header("Link")
 
     if link_value do
       link_header = ExLinkHeader.parse!(link_value)
       link_header["next"][:url]
     else
       nil
-    end
-  end
-
-  defp find_header(headers, key) do
-    case headers |> Enum.find(fn {k, _} -> k == key end) do
-      {_, v} -> v
-      _ -> nil
     end
   end
 end

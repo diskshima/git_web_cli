@@ -14,16 +14,22 @@ defimpl Remote, for: GitHub do
     |> Enum.map(&extract_id_title(&1))
   end
 
-  def get_issue(remote, number, options \\ []) do
+  def issue_url(remote, id) do
+    remote |> category_url("issues", id)
+  end
+
+  def pull_request_url(remote, number) do
+    remote |> category_url("pulls", number)
+  end
+
+  def get_issue(remote, number, _) do
     path = issue_path(remote, number)
     resp = GitHub.get_resource!(path, nil)
     handle_response(resp.body)
   end
 
-  def create_issue(remote, title, options) do
+  def create_issue(remote, title, options \\ %{}) do
     params = %{title: title}
-
-    description = options[:description]
 
     if options |> Dict.has_key?(:description) do
       params = params |> Dict.put_new(:body, options[:description])
@@ -58,6 +64,16 @@ defimpl Remote, for: GitHub do
     values = aggregate_results(path, [])
 
     values |> Enum.map(&extract_id_title(&1))
+  end
+
+  def create_pull_request(remote, title, source, dest, _options) do
+    path = pulls_path(remote)
+
+    dest = dest || "master"
+    params = %{title: title, head: source, base: dest}
+
+    resp = GitHub.post_resource!(path, params)
+    resp.body |> handle_response
   end
 
   defp handle_response(body) do
@@ -103,6 +119,12 @@ defimpl Remote, for: GitHub do
 
   defp extract_id_title(pr) do
     %{id: pr["number"], title: pr["title"]}
+  end
+
+  defp category_url(remote, category, id) do
+    # FIXME GitHub Enterprise
+    host = "https://github.com"
+    "#{host}/#{remote.repo}/#{category}/#{id}"
   end
 
   defp aggregate_results(nil, values) do

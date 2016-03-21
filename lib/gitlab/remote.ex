@@ -76,8 +76,7 @@ defimpl Remote, for: GitLab do
 
     project_id = remote |> GitLab.project_id
     dest = dest || "master"
-    params = %{title: title, source_branch: source}
-              |> Dict.merge(target_branch: dest)
+    params = %{title: title, source_branch: source, target_branch: dest}
 
     resp = GitLab.post_resource!("/projects/#{project_id}/merge_requests",
       params)

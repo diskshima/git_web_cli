@@ -11,7 +11,7 @@ It currently supports the below features:
 - Listing pull requests (merge requests on BitBucket)
 - Creating issues.
 - Creating pull requests.
-- Opening issues or pull requests in the browser. (OS X and Linux only)
+- Opening issues or pull requests in the browser.
 - Closing issues.
 
 Supports GitHub, BitBucket and GitLab.
@@ -24,7 +24,7 @@ Supports GitHub, BitBucket and GitLab.
 Visit the [Releases](http://example.com) page and download the binary.
 Unzip it and put the 'gw' file anywhere on your PATH.
 
-### 2. Install Erlang/OTP
+### 2. Install Erlang and OTP
 
 Pre-packaged binaries can be found at [Erlang Solutions](https://www.erlang-solutions.com/resources/download.html).
 

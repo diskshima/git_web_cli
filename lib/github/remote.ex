@@ -14,6 +14,12 @@ defimpl Remote, for: GitHub do
     |> Enum.map(&extract_id_title(&1))
   end
 
+  def get_issue(remote, number, options \\ []) do
+    path = issue_path(remote, number)
+    resp = GitHub.get_resource!(path, nil)
+    handle_response(resp.body)
+  end
+
   def create_issue(remote, title, options) do
     params = %{title: title}
 
@@ -32,11 +38,26 @@ defimpl Remote, for: GitHub do
     handle_response(resp.body)
   end
 
-  def close_issue(remote, id) do
-    path = issue_path(remote, id)
+  def close_issue(remote, number) do
+    path = issue_path(remote, number)
     params = %{state: "closed"}
     resp = GitHub.patch_resource!(path, params)
     handle_response(resp.body)
+  end
+
+  def pull_requests(remote, state \\ nil) do
+    base_path = pulls_path(remote)
+
+    path = if state do
+        query_string = URI.encode_query(%{state: state})
+        "#{base_path}?#{query_string}"
+      else
+        base_path
+      end
+
+    values = aggregate_results(path, [])
+
+    values |> Enum.map(&extract_id_title(&1))
   end
 
   defp handle_response(body) do
@@ -70,6 +91,10 @@ defimpl Remote, for: GitHub do
 
   defp issues_path(remote) do
     "/repos/#{remote.repo}/issues"
+  end
+
+  defp pulls_path(remote) do
+    "/repos/#{remote.repo}/pulls"
   end
 
   defp issue_path(remote, id) do

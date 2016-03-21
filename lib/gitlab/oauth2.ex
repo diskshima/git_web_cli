@@ -17,7 +17,7 @@ defmodule GitLab.OAuth2 do
         input = IO.gets("Please specify GitLab username > ")
 
         username = input |> String.strip
-        password = get_hidden_input("Please enter GitLab password " <>
+        password = Utis.get_hidden_input("Please enter GitLab password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
 
@@ -45,14 +45,6 @@ defmodule GitLab.OAuth2 do
       headers: [{"Accept", "application/json"},
         {"Content-Type", "application/json"}]
     ])
-  end
-
-  def get_hidden_input(prompt) do
-    IO.write prompt
-    :io.setopts(echo: false)
-    password = String.strip(IO.gets(""))
-    :io.setopts(echo: true)
-    password
   end
 
   defp save_tokens(token) do

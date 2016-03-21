@@ -21,7 +21,7 @@ Supports GitHub, BitBucket and GitLab.
 #### Listing Issues
 
 ```bash
-$ bb_cli issues      # (or just 'bb_cli is')
+$ gw issues      # (or just 'gw is')
 25: Better support for specifying configurations
 24: Close pull requests
 15: Support specifying credential file
@@ -32,24 +32,24 @@ $ bb_cli issues      # (or just 'bb_cli is')
 #### Listing Pull Requests
 
 ```bash
-$ bb_cli pull-requests     # (or just 'bb_cli prs')
+$ gw pull-requests     # (or just 'gw prs')
 15: Update README
 ```
 
 #### Creating a Issue
 
 ```bash
-$ bb_cli issue --title 'Major Bug that needs fixing'
+$ gw issue --title 'Major Bug that needs fixing'
   or
-$ bb_cli i --title 'Major Bug that needs fixing'
+$ gw i --title 'Major Bug that needs fixing'
 ```
 
 #### Creating a Pull Request
 
 ```bash
-$ bb_cli pull-request --title 'My Next Big Feature'
+$ gw pull-request --title 'My Next Big Feature'
   or
-$ bb_cli pr --title 'My Next Big Feature'
+$ gw pr --title 'My Next Big Feature'
 ```
 
 #### Closing a Issue
@@ -57,14 +57,14 @@ $ bb_cli pr --title 'My Next Big Feature'
 The below closes issue #15.
 
 ```bash
-$ bb_cli close issue 15      # (or just 'bb_cli close i 15')
+$ gw close issue 15      # (or just 'gw close i 15')
 ```
 
 #### Opening a Issue or Pull Request in the Browser
 
 ```bash
-$ bb_cli open issue 15           # (or just 'bb_cli o i 15')
-$ bb_cli open pull-request 5     # (or just 'bb_cli o pr 5')
+$ gw open issue 15           # (or just 'gw o i 15')
+$ gw open pull-request 5     # (or just 'gw o pr 5')
 ```
 
 ## Contributing

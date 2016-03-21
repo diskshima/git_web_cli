@@ -1,10 +1,10 @@
 defmodule Config do
-  def bb_cli_file do
-    Path.expand("~/.bb_cli")
+  def gw_file do
+    Path.expand("~/.gw")
   end
 
   def read do
-    case File.read(bb_cli_file) do
+    case File.read(gw_file) do
       {:ok, content} ->
         config_info = content |> Poison.decode!
         {:ok, config_info}
@@ -22,6 +22,6 @@ defmodule Config do
 
     json = Poison.encode!(new_content, [pretty: true])
 
-    File.write(bb_cli_file, json, [:write])
+    File.write(gw_file, json, [:write])
   end
 end

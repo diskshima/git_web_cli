@@ -1,4 +1,4 @@
-defmodule BbCli.Mixfile do
+defmodule GitWebCli.Mixfile do
   use Mix.Project
 
   def project do
@@ -7,7 +7,7 @@ defmodule BbCli.Mixfile do
      elixir: "~> 1.1",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     escript: [main_module: BbCli],
+     escript: [main_module: GitWebCli],
      deps: deps]
   end
 

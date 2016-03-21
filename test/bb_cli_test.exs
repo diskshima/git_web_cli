@@ -1,6 +1,6 @@
-defmodule BbCliTest do
+defmodule GitWebCliTest do
   use ExUnit.Case
-  doctest BbCli
+  doctest GitWebCli
 
   test "the truth" do
     assert 1 + 1 == 2

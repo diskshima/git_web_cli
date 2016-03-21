@@ -1,6 +1,6 @@
-# BbCli - CLI for managing Git remote repositories
+# git_web_cli - CLI for managing Git remote repositories
 
-BbCli is a CLI (Command Line Interface) to manage remote repositories.
+git_web_cli is a CLI (Command Line Interface) to manage remote repositories.
 
 ## Features
 

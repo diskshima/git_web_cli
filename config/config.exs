@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :bb_cli, key: :value
+#     config :gw, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:bb_cli, :key)
+#     Application.get_env(:gw, :key)
 #
 # Or configure a 3rd-party app:
 #

@@ -3,9 +3,6 @@ defmodule BitBucket.OAuth2 do
   Holds OAuth2 related functions for BitBucket.
   """
 
-  @client_id "YOUR_CLIENT_ID"
-  @client_secret "YOUR_CLIENT_SECRET"
-
   def oauth2_token do
     case existing_token do
       {:ok, token} -> token
@@ -15,7 +12,7 @@ defmodule BitBucket.OAuth2 do
         input = IO.gets("Please specify BitBucket username > ")
 
         username = input |> String.strip
-        password = get_hidden_input("Please enter BitBucket password " <>
+        password = Utils.get_hidden_input("Please enter BitBucket password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
 
@@ -25,11 +22,23 @@ defmodule BitBucket.OAuth2 do
     end
   end
 
+  def save_client_info(client_id, client_secret) do
+    Config.save_key(:bitbucket,
+      %{client_id: client_id, client_secret: client_secret})
+  end
+
+  def read_client_info do
+    values = Config.read_key(:bitbucket)
+    {values["client_id"], values["client_secret"]}
+  end
+
   defp oauth2_client do
+    {client_id, client_secret} = read_client_info
+
     OAuth2.Client.new([
       strategy: OAuth2.Strategy.Password,
-      client_id: @client_id,
-      client_secret: @client_secret,
+      client_id: client_id,
+      client_secret: client_secret,
       redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
       site: "https://api.bitbucket.org/2.0",
       token_url: "https://bitbucket.org/site/oauth2/access_token",
@@ -38,19 +47,11 @@ defmodule BitBucket.OAuth2 do
     ])
   end
 
-  def get_hidden_input(prompt) do
-    IO.write prompt
-    :io.setopts(echo: false)
-    password = String.strip(IO.gets(""))
-    :io.setopts(echo: true)
-    password
-  end
-
   defp save_tokens(token) do
-    bb_info = %{bitbucket: %{access_token: token.access_token,
-      refresh_token: token.refresh_token, expires_at: token.expires_at}}
+    bb_info = %{access_token: token.access_token,
+      refresh_token: token.refresh_token, expires_at: token.expires_at}
 
-    Config.save(bb_info)
+    Config.save_key(:bitbucket, bb_info)
 
     token
   end

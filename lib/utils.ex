@@ -26,6 +26,15 @@ defmodule Utils do
     end
   end
 
+  def get_hidden_input(prompt) do
+    IO.write prompt
+    :io.setopts(echo: false)
+    password = String.strip(IO.gets(""))
+    :io.setopts(echo: true)
+    IO.puts("")
+    password
+  end
+
   defmacro contained_case(value, do: lines) do
     new_lines = Enum.map(lines, fn ({:->, context, [[list], result]}) ->
         condition = quote do: Enum.member?(unquote(list), unquote(value))

@@ -14,20 +14,24 @@ defmodule GitWebCli do
     remote = get_remote(other_args)
 
     cond do
-      ~w(pull-requests prs) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(pull-requests prs), subcommand) ->
         process_pull_requests(remote, other_args)
-      ~w(pull-request pr) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(pull-request pr), subcommand) ->
         process_pull_request(remote, other_args)
-      ~w(issues is) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(issues is), subcommand) ->
         process_issues(remote, other_args)
-      ~w(issue i) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(issue i), subcommand) ->
         process_issue(remote, other_args)
-      ~w(open o) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(open o), subcommand) ->
         open_in_browser(remote, other_args)
-      ~w(close cl) |> Enum.member?(subcommand) ->
+      match_subcommand(~w(close cl), subcommand) ->
         process_close(remote, other_args)
       true -> IO.puts "Invalid argument"
     end
+  end
+
+  defp match_subcommand(candidates, subcommand) do
+    candidates |> Enum.member?(subcommand)
   end
 
   defp get_repo_or_default(options) do

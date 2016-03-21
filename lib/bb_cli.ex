@@ -1,4 +1,4 @@
-defmodule BbCli do
+defmodule GitWebCli do
   @moduledoc """
   Main module for the command line interface (CLI).
   It will parse the arguments and call into `BitBucket`.

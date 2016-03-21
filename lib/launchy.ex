@@ -5,20 +5,22 @@ defmodule Launchy do
 
   def open_url(url) do
     cond do
-      osx? -> System.cmd("open", [url])
+      osx? -> open_on_osx(url)
       linux? -> open_on_linux(url)
+      windows? -> open_on_windows(url)
     end
+  end
+
+  defp open_on_osx(url) do
+    System.cmd("open", [url])
   end
 
   defp open_on_linux(url) do
-    {command, args} = linux_command
-    System.cmd(command, args ++ [url])
+    System.cmd("xdg-open", [url])
   end
 
-  defp linux_command do
-    case System.get_env("XDG_CURRENT_DESKTOP") do
-      "XFCE" -> {"exo-open", ["--launch", "WebBrowser"]}
-    end
+  defp open_on_windows(url) do
+    System.cmd("start", ["launchy", "/b", url])
   end
 
   defp osx? do
@@ -27,6 +29,10 @@ defmodule Launchy do
 
   defp linux? do
     compare_os_type(:linux)
+  end
+
+  defp windows? do
+    compare_os_type(:nt)
   end
 
   defp compare_os_type(type) do

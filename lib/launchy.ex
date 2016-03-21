@@ -16,18 +16,11 @@ defmodule Launchy do
   end
 
   defp open_on_linux(url) do
-    {command, args} = linux_command
-    System.cmd(command, args ++ [url])
+    System.cmd("xdg-open", [url])
   end
 
   defp open_on_windows(url) do
     System.cmd("start", ["launchy", "/b", url])
-  end
-
-  defp linux_command do
-    case System.get_env("XDG_CURRENT_DESKTOP") do
-      "XFCE" -> {"exo-open", ["--launch", "WebBrowser"]}
-    end
   end
 
   defp osx? do

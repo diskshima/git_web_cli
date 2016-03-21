@@ -19,7 +19,7 @@ defimpl Remote, for: GitHub do
   end
 
   def pull_request_url(remote, number) do
-    remote |> category_url("pulls", number)
+    remote |> category_url("pull", number)
   end
 
   def get_issue(remote, number, _) do

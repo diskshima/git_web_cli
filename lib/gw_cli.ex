@@ -22,6 +22,7 @@ defmodule GitWebCli do
       ~w(issue i)           -> process_issue(remote, other_args)
       ~w(open o)            -> open_in_browser(remote, other_args)
       ~w(close cl)          -> process_close(remote, other_args)
+      ~w(set s)             -> process_set(remote, other_args)
       true                  -> IO.puts "Invalid argument"
     end
   end
@@ -147,7 +148,21 @@ defmodule GitWebCli do
     end
   end
 
-  def get_remote(options) do
+  defp process_set(remote, args) do
+    {target, other_args} = args |> ListExt.pop
+
+    contained_case target do
+      ~w(oauth2 oa2) -> set_oauth2_client_info(remote, other_args)
+    end
+  end
+
+  defp set_oauth2_client_info(remote, args) do
+    {client_id, client_secret, other_args} = args |> ListExt.pop(2)
+
+    remote |> Remote.save_oauth2_client_info(client_id, client_secret)
+  end
+
+  defp get_remote(options) do
     repo = get_repo_or_default(options)
 
     case determine_remote_type do

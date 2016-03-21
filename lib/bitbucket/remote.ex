@@ -75,6 +75,10 @@ defimpl Remote, for: BitBucket do
     handle_response(resp.body)
   end
 
+  def save_oauth2_client_info(remote, client_id, client_secret) do
+    BitBucket.OAuth2.save_client_info(client_id, client_secret)
+  end
+
   def issue_url(remote, id) do
     category_url(remote.repo, "issues", id)
   end

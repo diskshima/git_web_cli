@@ -84,6 +84,10 @@ defimpl Remote, for: GitLab do
     resp.body |> handle_response
   end
 
+  def save_oauth2_client_info(remote, client_id, client_secret) do
+    GitLab.OAuth2.save_client_info(client_id, client_secret)
+  end
+
   defp get_issue(remote, iid, opts \\ []) do
     project_id = opts[:project_id]
 

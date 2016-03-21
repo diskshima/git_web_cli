@@ -1,6 +1,7 @@
 # git_web_cli - CLI for managing Git remote repositories
 
-git_web_cli is a CLI (Command Line Interface) to manage remote repositories.
+git_web_cli is a CLI (Command Line Interface) for managing remote repositories.
+
 
 ## Features
 
@@ -10,10 +11,63 @@ It currently supports the below features:
 - Listing pull requests (merge requests on BitBucket)
 - Creating issues.
 - Creating pull requests.
-- Opening issues or pull requests in the browser.
+- Opening issues or pull requests in the browser. (OS X and Linux only)
 - Closing issues.
 
 Supports GitHub, BitBucket and GitLab.
+
+
+## Installation
+
+### 1. Download The Binary
+
+Visit the [Releases](http://example.com) page and download the binary.
+Unzip it and put the 'gw' file anywhere on your PATH.
+
+### 2. Install Erlang/OTP
+
+Pre-packaged binaries can be found at [Erlang Solutions](https://www.erlang-solutions.com/resources/download.html).
+
+Or alternatively:
+
+* Mac OS X (with brew)
+
+```bash
+$ brew install erlang
+```
+
+* Debian Linux
+
+```bash
+$ sudo apt-get install erlang
+```
+
+* Ubuntu Linux
+
+```bash
+$ sudo apt-get install erlang
+```
+
+### 3. Setup Your OAuth 2 Client ID and Client Secret
+
+Create an OAuth 2 Client ID and Client Secret in GitHub / BitBucket / GitLab.
+
+The Callback URL should be 'urn:ietf:wg:oauth:2.0:oob'.
+
+* GitHub
+    * [New OAuth Application - GitHub](https://github.com/settings/applications/new)
+* BitBucket
+    * Visit 'https://bitbucket.org/account/user/YOUR_BITBUCKET_USER_ID/oauth-consumers/new' and create a new application.
+* GitLab
+    * Visit 'https://YOUR_GITLAB_HOST/oauth/applications/new' and create a new application.
+
+Once you have obtained your Client ID and Client Secret, go to your repository directory and type:
+
+```bash
+$ gw set oauth2 CLIENT_ID CLIENT_SECRET
+```
+
+You should be good to go!
 
 
 ## Command Line Examples

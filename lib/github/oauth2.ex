@@ -15,7 +15,7 @@ defmodule GitHub.OAuth2 do
         input = IO.gets("Please specify GitHub username > ")
 
         username = input |> String.strip
-        password = get_hidden_input("Please enter GitHub password " <>
+        password = Utils.get_hidden_input("Please enter GitHub password " <>
           "(keys entered will be hidden) > ")
 
         token = create_auth(username, password)
@@ -73,15 +73,6 @@ defmodule GitHub.OAuth2 do
         {"Content-Type", "application/json"}],
       scope: "repo"
     ])
-  end
-
-  def get_hidden_input(prompt) do
-    IO.write prompt
-    :io.setopts(echo: false)
-    password = String.strip(IO.gets(""))
-    :io.setopts(echo: true)
-    IO.puts("")
-    password
   end
 
   defp save_tokens(token) do

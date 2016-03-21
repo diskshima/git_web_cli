@@ -23,6 +23,7 @@ defmodule GitWebCli do
       ~w(open o)            -> open_in_browser(remote, other_args)
       ~w(close cl)          -> process_close(remote, other_args)
       ~w(set s)             -> process_set(remote, other_args)
+      ~w(help h)            -> display_help(other_args)
       true                  -> IO.puts "Invalid argument"
     end
   end
@@ -156,8 +157,15 @@ defmodule GitWebCli do
     end
   end
 
+  defp display_help(args) do
+    args
+    |> Enum.at(0)
+    |> Help.lookup
+    |> IO.write
+  end
+
   defp set_oauth2_client_info(remote, args) do
-    {client_id, client_secret, other_args} = args |> ListExt.pop(2)
+    {client_id, client_secret, _} = args |> ListExt.pop(2)
 
     remote |> Remote.save_oauth2_client_info(client_id, client_secret)
   end

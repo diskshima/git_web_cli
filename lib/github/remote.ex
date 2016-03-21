@@ -32,6 +32,13 @@ defimpl Remote, for: GitHub do
     handle_response(resp.body)
   end
 
+  def close_issue(remote, id) do
+    path = issue_path(remote, id)
+    params = %{state: "closed"}
+    resp = GitHub.patch_resource!(path, params)
+    handle_response(resp.body)
+  end
+
   defp handle_response(body) do
     case body do
       %{"message" => message, "errors" => errors} ->
@@ -63,6 +70,10 @@ defimpl Remote, for: GitHub do
 
   defp issues_path(remote) do
     "/repos/#{remote.repo}/issues"
+  end
+
+  defp issue_path(remote, id) do
+    "/repos/#{remote.repo}/issues/#{id}"
   end
 
   defp extract_id_title(pr) do

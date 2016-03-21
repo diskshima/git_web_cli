@@ -33,6 +33,11 @@ defmodule GitHub do
     OAuth2.AccessToken.put!(token, path, body)
   end
 
+  def patch_resource!(path, body) do
+    token = oauth2_token
+    OAuth2.AccessToken.patch!(token, path, body)
+  end
+
   def delete!(path) do
     token = oauth2_token
     resource = OAuth2.AccessToken.delete!(token, path)

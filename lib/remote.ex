@@ -6,4 +6,5 @@ defprotocol Remote do
   def pull_requests(remote, state)
   def pull_request_url(remote, id)
   def create_pull_request(remote, title, source, dest, options)
+  def save_oauth2_client_info(remote, client_id, client_secret)
 end

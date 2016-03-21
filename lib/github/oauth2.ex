@@ -3,9 +3,6 @@ defmodule GitHub.OAuth2 do
   Holds OAuth2 related functions for GitLab.
   """
 
-  @client_id "YOUR_CLIENT_ID"
-  @client_secret "YOUR_CLIENT_SECRET"
-
   def oauth2_token do
     case existing_token do
       {:ok, token} -> token
@@ -15,7 +12,7 @@ defmodule GitHub.OAuth2 do
         input = IO.gets("Please specify GitHub username > ")
 
         username = input |> String.strip
-        password = get_hidden_input("Please enter GitHub password " <>
+        password = Utils.get_hidden_input("Please enter GitHub password " <>
           "(keys entered will be hidden) > ")
 
         token = create_auth(username, password)
@@ -28,12 +25,24 @@ defmodule GitHub.OAuth2 do
     end
   end
 
+  def save_client_info(client_id, client_secret) do
+    Config.save_key(:github,
+      %{client_id: client_id, client_secret: client_secret})
+  end
+
+  def read_client_info do
+    values = Config.read_key(:github)
+    {values["client_id"], values["client_secret"]}
+  end
+
   defp create_auth(username, password) do
     hackney_opts = [basic_auth: {username, password}]
-    params = Poison.encode!(%{"client_secret": @client_secret, scopes: ["repo"]})
+
+    {client_id, client_secret} = read_client_info
+    params = Poison.encode!(%{"client_secret": client_secret, scopes: ["repo"]})
 
     response = HTTPoison.put!(
-      "https://api.github.com/authorizations/clients/#{@client_id}", params,
+      "https://api.github.com/authorizations/clients/#{client_id}", params,
       [{"Accept", "application/json"}, {"Content-Type", "application/json"}],
       [ hackney: hackney_opts ])
 
@@ -46,7 +55,7 @@ defmodule GitHub.OAuth2 do
         <> " factor code > ")
       two_factor = two_factor_input |> String.strip
       response = HTTPoison.put!(
-        "https://api.github.com/authorizations/clients/#{@client_id}", params,
+        "https://api.github.com/authorizations/clients/#{client_id}", params,
         [{"Accept", "application/json"}, {"Content-Type", "application/json"},
          {"X-GitHub-OTP", two_factor}],
         [ hackney: hackney_opts ])
@@ -61,10 +70,12 @@ defmodule GitHub.OAuth2 do
   end
 
   defp oauth2_client do
+    {client_id, client_secret} = read_client_info
+
     OAuth2.Client.new([
       strategy: OAuth2.Strategy.Password,
-      client_id: @client_id,
-      client_secret: @client_secret,
+      client_id: client_id,
+      client_secret: client_secret,
       redirect_uri: "http://example.com/",
       site: "https://api.github.com",
       authorize_url: "https://github.com/login/oauth/authorize",
@@ -75,19 +86,10 @@ defmodule GitHub.OAuth2 do
     ])
   end
 
-  def get_hidden_input(prompt) do
-    IO.write prompt
-    :io.setopts(echo: false)
-    password = String.strip(IO.gets(""))
-    :io.setopts(echo: true)
-    IO.puts("")
-    password
-  end
-
   defp save_tokens(token) do
     if token.access_token do
-      info = %{github: %{access_token: token.access_token}}
-      Config.save(info)
+      info = %{access_token: token.access_token}
+      Config.save_key(:github, info)
     end
 
     token

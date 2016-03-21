@@ -76,6 +76,10 @@ defimpl Remote, for: GitHub do
     resp.body |> handle_response
   end
 
+  def save_oauth2_client_info(remote, client_id, client_secret) do
+    GitHub.OAuth2.save_client_info(client_id, client_secret)
+  end
+
   defp handle_response(body) do
     case body do
       %{"message" => message, "errors" => errors} ->

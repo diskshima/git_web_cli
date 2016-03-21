@@ -37,6 +37,7 @@ defmodule BbCli do
       case determine_remote_type do
         :bitbucket -> BitBucket.repo_names |> Enum.at(0)
         :gitlab -> GitLab.repo_names |> Enum.at(0)
+        :github -> GitHub.repo_names |> Enum.at(0)
       end
     end
   end
@@ -156,6 +157,7 @@ defmodule BbCli do
     case determine_remote_type do
       :bitbucket -> %BitBucket{repo: repo}
       :gitlab -> %GitLab{repo: repo}
+      :github -> %GitHub{repo: repo}
       _ -> raise "No remote found."
     end
   end
@@ -163,10 +165,20 @@ defmodule BbCli do
   defp determine_remote_type do
     remotes = Git.remote_urls
 
-    is_bb =
-      remotes
-      |> Enum.any?(fn(url) -> String.contains?(url, "bitbucket.org") end)
+    is_bb = remotes |> remote_url_matches("bitbucket.org")
+    # FIXME GitHub and GitLab could be any URL so we need to think about how we
+    #   determine the remote service.
+    is_gh = remotes |> remote_url_matches("github.com")
 
-    if is_bb, do: :bitbucket, else: :gitlab
+    cond do
+      is_bb -> :bitbucket
+      is_gh -> :github
+      true -> :gitlab
+    end
+  end
+
+  defp remote_url_matches(urls, str) do
+    urls
+    |> Enum.any?(fn(url) -> String.contains?(url, str) end)
   end
 end

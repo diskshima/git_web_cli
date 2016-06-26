@@ -3,4 +3,6 @@
 /deps
 erl_crash.dump
 *.ez
+
 gw
+gw.zip

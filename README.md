@@ -21,7 +21,7 @@ Supports GitHub, BitBucket and GitLab.
 
 ### 1. Download The Binary
 
-Visit the [Releases](http://example.com) page and download the binary.
+Visit the [Releases](https://github.com/diskshima/git_web_cli/releases) page and download the binary.
 Unzip it and put the 'gw' file anywhere on your PATH.
 
 ### 2. Install Erlang and OTP

@@ -60,11 +60,14 @@ defmodule BitBucket.OAuth2 do
     case Config.read do
       {:ok, info} ->
         bb_config = info["bitbucket"]
-        if bb_config["expires_at"] < OAuth2.Util.unix_now do
-          {:ok, OAuth2.AccessToken.refresh!(
-            %{refresh_token: bb_config["refresh_token"], client: oauth2_client})}
-        else
-          {:ok, OAuth2.AccessToken.new(bb_config["access_token"], oauth2_client)}
+
+        cond do
+          bb_config["expires_at"] < OAuth2.Util.unix_now ->
+            {:ok, OAuth2.AccessToken.refresh!(
+              %{refresh_token: bb_config["refresh_token"], client: oauth2_client})}
+          bb_config["access_token"] ->
+            {:ok, OAuth2.AccessToken.new(bb_config["access_token"], oauth2_client)}
+          true -> {:error, nil}
         end
       {:error, _} -> {:error, nil}
     end

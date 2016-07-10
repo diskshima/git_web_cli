@@ -25,7 +25,7 @@ defimpl Remote, for: GitHub do
   def get_issue(remote, number, _) do
     path = issue_path(remote, number)
     resp = GitHub.get_resource!(path, nil)
-    handle_response(resp.body)
+    resp.body |> handle_response
   end
 
   def create_issue(remote, title, options \\ %{}) do
@@ -41,14 +41,21 @@ defimpl Remote, for: GitHub do
 
     resp = GitHub.post_resource!(issues_path(remote), params)
 
-    handle_response(resp.body)
+    resp.body |> handle_response
   end
 
   def close_issue(remote, number) do
     path = issue_path(remote, number)
     params = %{state: "closed"}
     resp = GitHub.patch_resource!(path, params)
-    handle_response(resp.body)
+    resp.body |> handle_response
+  end
+
+  def assign_issue(remote, number, assignee) do
+    path = remote |> issue_path(number)
+    params = %{assignee: assignee}
+    resp = GitHub.patch_resource!(path, params)
+    resp.body |> handle_response
   end
 
   def pull_requests(remote, state \\ nil) do

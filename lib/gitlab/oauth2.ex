@@ -14,7 +14,7 @@ defmodule GitLab.OAuth2 do
         input = IO.gets("Please specify GitLab username > ")
 
         username = input |> String.strip
-        password = Utis.get_hidden_input("Please enter GitLab password " <>
+        password = Utils.get_hidden_input("Please enter GitLab password " <>
           "(keys entered will be hidden) > ")
         params = Keyword.new([{:username, username}, {:password, password}])
 

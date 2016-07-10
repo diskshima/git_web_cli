@@ -37,12 +37,20 @@ defimpl Remote, for: GitLab do
   end
 
   def close_issue(remote, iid) do
-    project_id = remote |> GitLab.project_id
-
-    issue = remote |> get_issue(iid, [project_id: project_id])
-    id = issue["id"]
-    path = "/projects/#{project_id}/issues/#{id}"
+    path = remote |> issue_path(iid)
     params = %{state_event: "close"}
+
+    resp = GitLab.put_resource!(path, params)
+
+    resp.body
+    |> handle_response
+  end
+
+  def assign_issue(remote, iid, assignee) do
+    path = remote |> issue_path(iid)
+
+    # TODO Most likely will not work with the username.
+    params = %{assignee_id: assignee}
 
     resp = GitLab.put_resource!(path, params)
 
@@ -84,16 +92,33 @@ defimpl Remote, for: GitLab do
     resp.body |> handle_response
   end
 
+  def assign_pull_request(remote, id, assignee) do
+    path = remote |> merge_request_path(id)
+    params = %{assignee_id: assignee}
+
+    resp = GitLab.put_resource!(path, params)
+
+    resp.body |> handle_response
+  end
+
   def save_oauth2_client_info(remote, client_id, client_secret) do
     GitLab.OAuth2.save_client_info(client_id, client_secret)
   end
 
   defp get_issue(remote, iid, opts \\ []) do
+    remote |> get_item("issues", iid)
+  end
+
+  defp get_pull_request(remote, iid, opts \\ []) do
+    remote |> get_item("merge_requests", iid, opts)
+  end
+
+  defp get_item(remote, category, iid, opts \\ []) do
     project_id = opts[:project_id]
 
     unless project_id, do: project_id = remote |> GitLab.project_id
 
-    path = "/projects/#{project_id}/issues"
+    path = "/projects/#{project_id}/#{category}"
     params = [iid: iid]
 
     resource = GitLab.get_resource!(path, params)
@@ -144,5 +169,19 @@ defimpl Remote, for: GitLab do
   defp category_url(remote, category, id) do
     host = GitLab.OAuth2.host_name
     "#{host}/#{remote.repo}/#{category}/#{id}"
+  end
+
+  defp issue_path(remote, iid) do
+    project_id = remote |> GitLab.project_id
+    issue = remote |> get_issue(iid)
+    id = issue["id"]
+    "/projects/#{project_id}/issues/#{id}"
+  end
+
+  defp merge_request_path(remote, iid) do
+    project_id = remote |> GitLab.project_id
+    pr = remote |> get_pull_request(iid)
+    id = pr["id"]
+    "/projects/#{project_id}/merge_requests/#{id}"
   end
 end

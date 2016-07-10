@@ -22,6 +22,7 @@ defmodule GitWebCli do
       ~w(issue i)           -> process_issue(remote, other_args)
       ~w(open o)            -> open_in_browser(remote, other_args)
       ~w(close cl)          -> process_close(remote, other_args)
+      ~w(assign a)          -> process_assign(remote, other_args)
       ~w(set s)             -> process_set(remote, other_args)
       ~w(help h)            -> display_help(other_args)
       true                  -> IO.puts "Invalid argument"
@@ -150,6 +151,23 @@ defmodule GitWebCli do
         remote
         |> Remote.close_issue(id)
         |> print_issue_result("Closed", remote)
+    end
+  end
+
+  defp process_assign(remote, other_args) do
+    {_, args_left, _} = OptionParser.parse(other_args)
+
+    {category, id, assignee, _} = args_left |> ListExt.pop(3)
+
+    cond do
+      ~w(pull-request pr) |> Enum.member?(category) ->
+        remote
+        |> Remote.assign_pull_request(id, assignee)
+        |> print_pullrequest_result(remote)
+      ~w(issue i) |> Enum.member?(category) ->
+        remote
+        |> Remote.assign_issue(id, assignee)
+        |> print_issue_result("Assigned", remote)
     end
   end
 

@@ -43,6 +43,15 @@ defimpl Remote, for: BitBucket do
     raise "Updating issues is not supported by the BitBucket API v2"
   end
 
+  def assign_issue(remote, id, assignee) do
+    params = %{responsible: assignee}
+
+    resp = BitBucket.put_resource!("/repositories/#{remote.repo}/issues",
+      params)
+
+    resp.body |> handle_response
+  end
+
   def pull_requests(remote, state \\ nil) do
     base_path = "/repositories/#{remote.repo}/pullrequests"
 
@@ -75,6 +84,16 @@ defimpl Remote, for: BitBucket do
     handle_response(resp.body)
   end
 
+  def assign_pull_request(remote, id, assignee) do
+    params = %{reviewers: %{username: assignee}}
+
+    resp = BitBucket.put_resource!(
+      pull_request_url(remote, id), params)
+
+    resp.body
+    |> handle_response
+  end
+
   def save_oauth2_client_info(remote, client_id, client_secret) do
     BitBucket.OAuth2.save_client_info(client_id, client_secret)
   end
@@ -84,7 +103,7 @@ defimpl Remote, for: BitBucket do
   end
 
   def pull_request_url(remote, id) do
-    category_url(remote.repo, "pull-requests", id)
+    category_url(remote.repo, "pullrequests", id)
   end
 
   defp aggregate_results(nil, values) do

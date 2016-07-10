@@ -44,18 +44,22 @@ defmodule GitWebCli do
     IO.puts Enum.join(list, "\r\n")
   end
 
-  defp print_issue_result(issue_body, verb) do
+  defp print_issue_result(issue_body, verb, remote) do
     msg = case issue_body do
-        %{id: id, title: title} -> "#{verb} issue ##{id}: #{title}"
+        %{id: id, title: title} ->
+          url = remote |> Remote.issue_url(id)
+          "#{verb} issue ##{id}: #{title}\n#{url}"
         %{error: message} -> message
       end
 
     IO.puts(msg)
   end
 
-  defp print_pullrequest_result(pr_body) do
+  defp print_pullrequest_result(pr_body, remote) do
     msg = case pr_body do
-        %{id: id, title: title} -> "Created pull request ##{id}: #{title}"
+        %{id: id, title: title} ->
+          url = remote |> Remote.pull_request_url(id)
+          "Created pull request ##{id}: #{title}\n#{url}"
         %{error: message} -> message
       end
 
@@ -105,7 +109,7 @@ defmodule GitWebCli do
 
     remote
     |> Remote.create_pull_request(title, source, target, pr_opts)
-    |> print_pullrequest_result
+    |> print_pullrequest_result(remote)
   end
 
   defp process_issues(remote, other_args) do
@@ -130,7 +134,7 @@ defmodule GitWebCli do
 
     remote
     |> Remote.create_issue(title, other_opts)
-    |> print_issue_result("Created")
+    |> print_issue_result("Created", remote)
   end
 
   defp process_close(remote, other_args) do
@@ -145,7 +149,7 @@ defmodule GitWebCli do
       ~w(issue i) |> Enum.member?(category) ->
         remote
         |> Remote.close_issue(id)
-        |> print_issue_result("Closed")
+        |> print_issue_result("Closed", remote)
     end
   end
 
